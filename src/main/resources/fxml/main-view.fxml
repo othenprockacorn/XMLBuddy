@@ -3,10 +3,12 @@
 <?import javafx.scene.web.*?>
 <?import javafx.scene.layout.*?>
 
+<?import javafx.scene.control.Button?>
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0"
             prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.acorn.xmlbuddy.controller.MainController">
-    <WebView fx:id="webView" layoutX="100.0" layoutY="176.0" prefHeight="400.0" prefWidth="600.0"
-             AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-             AnchorPane.topAnchor="0.0"/>
+
+
+    <Button fx:id="butRunQuery" text="Click me!" onAction="#runQuery"/>
+
 </AnchorPane>
