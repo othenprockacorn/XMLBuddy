@@ -11,8 +11,7 @@ public class MainApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(this.getClass().getResource(GlobalSettings.MAIN_VIEW));
-
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
+        Scene scene = new Scene(fxmlLoader.load(), 640, 480);
         stage.setTitle(GlobalSettings.APP_TITLE);
         stage.setScene(scene);
        // stage.setMaximized(true);
