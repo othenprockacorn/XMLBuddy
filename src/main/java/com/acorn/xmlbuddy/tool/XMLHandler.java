@@ -2,7 +2,7 @@ package com.acorn.xmlbuddy.tool;
 
 
 import com.acorn.xmlbuddy.model.XmlNode;
-import javafx.beans.property.SimpleStringProperty;
+
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -17,7 +17,6 @@ public class XMLHandler implements  IXMLHandler{
     private String userElement = null;
     private String rowElement = null;
     private Integer nodeIndex = 1;
-    public XMLHandler(){}
 
 
     public XMLHandler(String userElement, String rowElement){
