@@ -64,7 +64,7 @@ public class XMLHandler implements  IXMLHandler{
                     case XMLStreamReader.CHARACTERS:
                         currentText = xmlStreamReader.getText().trim();
                         if (currentNode != null && !currentText.isEmpty())
-                            nodeList.add(new XmlNode(currentNode, currentText ) );
+                            nodeList.add(new XmlNode(currentNode, currentText, "") );
                         break;
 
                 }

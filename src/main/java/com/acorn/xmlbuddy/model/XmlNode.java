@@ -6,11 +6,12 @@ public class XmlNode {
 
     private final SimpleStringProperty nodeName = new SimpleStringProperty("");
     private final SimpleStringProperty nodeValue = new SimpleStringProperty("");
+    private final SimpleStringProperty nodeAttributes = new SimpleStringProperty("");
 
-
-    public XmlNode(String nodeName, String nodeValue){
+    public XmlNode(String nodeName, String nodeValue, String nodeAttributes){
         this.nodeName.set(nodeName);
         this.nodeValue.set(nodeValue);
+        this.nodeAttributes.set(nodeAttributes);
     }
 
     public SimpleStringProperty getName() {
@@ -20,6 +21,11 @@ public class XmlNode {
     public SimpleStringProperty getValue() {
 
         return nodeValue;
+    }
+
+    public SimpleStringProperty getAttributes() {
+
+        return nodeAttributes;
     }
 
 

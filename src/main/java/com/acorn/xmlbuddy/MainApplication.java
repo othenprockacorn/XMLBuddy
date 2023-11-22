@@ -14,7 +14,6 @@ public class MainApplication extends Application {
         Scene scene = new Scene(fxmlLoader.load(), 640, 480);
         stage.setTitle(GlobalSettings.APP_TITLE);
         stage.setScene(scene);
-       // stage.setMaximized(true);
         stage.show();
     }
 
