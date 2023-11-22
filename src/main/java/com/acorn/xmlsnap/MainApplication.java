@@ -1,4 +1,4 @@
-package com.acorn.xmlbuddy;
+package com.acorn.xmlsnap;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

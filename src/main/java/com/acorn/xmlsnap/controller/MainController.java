@@ -1,9 +1,9 @@
-package com.acorn.xmlbuddy.controller;
+package com.acorn.xmlsnap.controller;
 
-import com.acorn.xmlbuddy.tool.XMLHandler;
-import com.acorn.xmlbuddy.model.XmlNode;
+import com.acorn.xmlsnap.tool.XMLHandler;
+import com.acorn.xmlsnap.model.XmlNode;
 
-import com.acorn.xmlbuddy.tool.XMLImporter;
+import com.acorn.xmlsnap.tool.XMLImporter;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;

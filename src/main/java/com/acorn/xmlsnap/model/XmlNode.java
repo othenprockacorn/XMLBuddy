@@ -1,4 +1,4 @@
-package com.acorn.xmlbuddy.model;
+package com.acorn.xmlsnap.model;
 
 import javafx.beans.property.SimpleStringProperty;
 

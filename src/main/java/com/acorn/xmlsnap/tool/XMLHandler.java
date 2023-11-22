@@ -1,7 +1,7 @@
-package com.acorn.xmlbuddy.tool;
+package com.acorn.xmlsnap.tool;
 
 
-import com.acorn.xmlbuddy.model.XmlNode;
+import com.acorn.xmlsnap.model.XmlNode;
 
 
 import javax.xml.stream.XMLInputFactory;

@@ -11,7 +11,7 @@
 <?import javafx.scene.control.TableView?>
 
 
-<GridPane fx:controller="com.acorn.xmlbuddy.controller.MainController"
+<GridPane fx:controller="com.acorn.xmlsnap.controller.MainController"
           xmlns:fx="http://javafx.com/fxml" alignment="center" hgap="10" vgap="10" >
 
     <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>

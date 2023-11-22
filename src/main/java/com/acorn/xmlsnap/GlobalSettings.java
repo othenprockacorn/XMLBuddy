@@ -1,4 +1,4 @@
-package com.acorn.xmlbuddy;
+package com.acorn.xmlsnap;
 
 public class GlobalSettings {
 
@@ -6,7 +6,7 @@ public class GlobalSettings {
     private static final String HTML_PATH = "/html/";
     public static final String
         MAIN_VIEW = FXML_PATH + "main-view.fxml",
-        APP_TITLE = "XMLBuddy",
+        APP_TITLE = "XMLSnap",
         MAIN_HTML = HTML_PATH + "xml-viewer.html";
 
 

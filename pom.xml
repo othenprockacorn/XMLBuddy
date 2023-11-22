@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.acorn</groupId>
-    <artifactId>XmlBuddy</artifactId>
+    <artifactId>XmlSnap</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>XmlBuddy</name>
+    <name>XmlSnap</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -35,7 +35,7 @@
                         <id>default-cli</id>
                         <configuration>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.acorn.xmlbuddy.MainApplication</mainClass>
+                            <mainClass>com.acorn.xmlsnap.MainApplication</mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
                             <jlinkImageName>app</jlinkImageName>
@@ -56,8 +56,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.acorn.xmlbuddy.Application</mainClass>
-                            <classpathPrefix>${project.basedir}/lib/</classpathPrefix>
+                            <mainClass>com.acorn.xmlsnap.Application</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

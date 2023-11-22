@@ -1,4 +1,4 @@
-package com.acorn.xmlbuddy.tool;
+package com.acorn.xmlsnap.tool;
 
 public interface IXMLImporter {
 

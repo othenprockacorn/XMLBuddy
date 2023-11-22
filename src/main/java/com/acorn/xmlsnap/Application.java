@@ -1,4 +1,4 @@
-package com.acorn.xmlbuddy;
+package com.acorn.xmlsnap;
 
 public class Application {
     public static void main(String[] args) throws Exception {
