@@ -4,6 +4,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.util.Arrays;
 
 public class XMLImporter {
 
@@ -11,10 +12,10 @@ public class XMLImporter {
     private final FileChooser fileChooser = new FileChooser();
     private static final String TITLE = "Select file .xml";
 
+    private String filePath = "";
 
     public String getXmlPath(){
 
-        String pathFile = "";
         fileChooser.setTitle(TITLE);
         fileChooser.getExtensionFilters().add( new FileChooser.ExtensionFilter("XML File", "*.xml"));
 
@@ -22,10 +23,17 @@ public class XMLImporter {
         File selectedFile = fileChooser.showOpenDialog(mainStage);
 
         if (selectedFile != null) {
-            pathFile = selectedFile.getPath();
+            filePath = selectedFile.getPath();
         }
 
-        return pathFile;
+        return filePath;
+    }
+
+
+    public String getXmlFileName(){
+
+        return filePath.substring(filePath.lastIndexOf('\\') + 1);
+
     }
 
 
