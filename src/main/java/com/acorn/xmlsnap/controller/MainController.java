@@ -74,7 +74,7 @@ public class MainController implements Initializable {
 
         tfFilter.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
-                setFilteredViewing("AND(book=2,book=4)");
+                setFilteredViewing();
             }
         } );
 
@@ -125,23 +125,16 @@ public class MainController implements Initializable {
     }
 
 
-    private void setFilteredViewing(String filter){
+    private void setFilteredViewing(){
 
-        List<NodeFilter> nodeFilterList = new ArrayList<>();
-        String[] filterList= filter.replace("\"","").split("\\(");
-        String filterType = filterList[0];
-        String filterOptions = filterList[1].replaceAll("[()]", "");
-        String[] filters= filterOptions.split(",");
+        List<NodeFilter> nodeFilterList = getNodeFilterList(tfFilter.getText());
 
-        for(String f :filters){
-            String[] filterParts = f.split("=");
-            NodeFilter nf = new NodeFilter(filterParts[0],filterParts[1]);
-            nodeFilterList.add(nf);
-        }
+        if (nodeFilterList == null || nodeFilterList.isEmpty() ) return;
 
-
+       //Add filter here!
 
     }
+
 
     @FXML
     public void moveNext(){
@@ -160,4 +153,25 @@ public class MainController implements Initializable {
         }
 
     }
+
+    private static List<NodeFilter> getNodeFilterList(String filter) {
+        if(filter.isEmpty()){
+            return null;
+        }
+
+        List<NodeFilter> nodeFilterList = new ArrayList<>();
+        String filterOptions = filter.trim();
+        String[] filters= filterOptions.split(",");
+
+
+        for(String f :filters){
+            String[] filterParts = f.split("=");
+            if (filterParts.length < 2) return null;
+            NodeFilter nf = new NodeFilter(filterParts[0].replaceAll("[^a-zA-Z0-9]", ""),
+                    filterParts[1].replaceAll("[^a-zA-Z0-9]", ""));
+            nodeFilterList.add(nf);
+        }
+        return nodeFilterList;
+    }
+
 }
