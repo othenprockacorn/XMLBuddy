@@ -8,6 +8,7 @@ import com.acorn.xmlsnap.tool.XMLImporter;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -19,6 +20,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MainController implements Initializable {
 
@@ -60,8 +64,8 @@ public class MainController implements Initializable {
         xmlImporter = new XMLImporter();
 
 
-        nameColumn.setCellValueFactory(cellData -> cellData.getValue().getName());
-        valueColumn.setCellValueFactory(cellData -> cellData.getValue().getValue());
+        nameColumn.setCellValueFactory(cellData -> cellData.getValue().getNodeName());
+        valueColumn.setCellValueFactory(cellData -> cellData.getValue().getNodeValue());
         attributesColumn.setCellValueFactory(cellData -> cellData.getValue().getAttributes());
 
         nameColumn.setMinWidth(150.0);
@@ -129,10 +133,30 @@ public class MainController implements Initializable {
 
         List<NodeFilter> nodeFilterList = getNodeFilterList(tfFilter.getText());
 
-        if (nodeFilterList == null || nodeFilterList.isEmpty() ) return;
+        if (nodeFilterList == null || nodeFilterList.isEmpty() ) {
+            tableView.setItems(observableList);
+            return;
+        }
 
-       //Add filter here!
 
+        FilteredList<XmlNode> filteredList = new FilteredList<>(FXCollections.observableList(observableList));
+
+        List<Predicate<XmlNode>> allPredicates = new ArrayList<>();
+
+        for(NodeFilter x : nodeFilterList){
+            allPredicates.add(obj -> {
+                return searchNode(obj, x.getValueFilter(),x.getValueFilter());});
+
+        }
+
+      //  filteredList.setPredicate(allPredicates.stream().reduce(x->true, Predicate::and));
+      //  tableView.setItems(filteredList);
+
+    }
+
+    private boolean searchNode(XmlNode xn, String node, String value){
+        return (xn.getNodeName().toString().equalsIgnoreCase(node) &&
+                xn.getNodeValue().toString().equalsIgnoreCase(value));
     }
 
 
@@ -167,8 +191,7 @@ public class MainController implements Initializable {
         for(String f :filters){
             String[] filterParts = f.split("=");
             if (filterParts.length < 2) return null;
-            NodeFilter nf = new NodeFilter(filterParts[0].replaceAll("[^a-zA-Z0-9]", ""),
-                    filterParts[1].replaceAll("[^a-zA-Z0-9]", ""));
+            NodeFilter nf = new NodeFilter(filterParts[0], filterParts[1]);
             nodeFilterList.add(nf);
         }
         return nodeFilterList;

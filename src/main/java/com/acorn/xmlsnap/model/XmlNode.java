@@ -14,11 +14,11 @@ public class XmlNode {
         this.nodeAttributes.set(nodeAttributes);
     }
 
-    public SimpleStringProperty getName() {
+    public SimpleStringProperty getNodeName() {
         return nodeName;
     }
 
-    public SimpleStringProperty getValue() {
+    public SimpleStringProperty getNodeValue() {
 
         return nodeValue;
     }
