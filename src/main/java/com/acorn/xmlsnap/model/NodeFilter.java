@@ -2,17 +2,27 @@ package com.acorn.xmlsnap.model;
 
 public class NodeFilter {
 
-    private String nameFilter;
-    private String valueFilter;
-    private boolean isNot;
-    private boolean isAttribute;
+    private final String nameFilter;
+    private final String valueFilter;
+    private final boolean isNot;
+    private final boolean isAttribute;
 
+    int hitCount;
+
+    public int getHitCount() {
+        return hitCount;
+    }
+
+    public void setHitCount(int hitCount) {
+        this.hitCount = hitCount;
+    }
 
     public NodeFilter(String nameFilter, String valueFilter, boolean isNot, boolean isAttribute) {
         this.nameFilter = nameFilter;
         this.valueFilter = valueFilter;
         this.isNot = isNot;
         this.isAttribute = isAttribute;
+        hitCount = 0;
     }
 
 
@@ -20,19 +30,11 @@ public class NodeFilter {
         return nameFilter;
     }
 
-    public void setNameFilter(String nameFilter) {
-        this.nameFilter = nameFilter;
-    }
-
     public String getValueFilter() {
         return valueFilter;
     }
 
-    public void setValueFilter(String valueFilter) {
-        this.valueFilter = valueFilter;
-    }
+    public boolean getIsNot() {return isNot;}
 
-    public boolean isNot() {return isNot;}
-
-    public boolean isAttribute() {return isAttribute;}
+    public boolean getIsAttribute() {return isAttribute;}
 }

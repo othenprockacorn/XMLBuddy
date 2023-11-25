@@ -113,41 +113,58 @@ public class XMLHandler implements  IXMLHandler{
     public Integer filterXmlData(List<NodeFilter> nodeFilterList, String filterType){
 
         nodeFilteredIndex=0;
-
-        int filterCount;
-
+        boolean  addIsToResults;
 
         for (Map.Entry<Integer,List<XmlNode>> xnList : xmlData.entrySet()){
 
-            filterCount = 0;
 
-            for(XmlNode xn : xnList.getValue()) {
+            for (NodeFilter nf : nodeFilterList){
 
-                for (NodeFilter nf : nodeFilterList){
+              nf.setHitCount(0);
 
-                    if(xn.getNodeName().get().equalsIgnoreCase(nf.getNameFilter())
-                    && xn.getNodeValue().get().equalsIgnoreCase(nf.getValueFilter())){
-                        filterCount++;
+                for(XmlNode xn : xnList.getValue()) {
+
+                    if(( nf.getNameFilter().equalsIgnoreCase(xn.getNodeName().get() ) )
+                            && (nf.getValueFilter().equalsIgnoreCase(xn.getNodeValue().get() ) )) {
+                        nf.setHitCount(nf.getHitCount()+1);
                     }
 
                 }
 
             }
 
-            if(filterType.equalsIgnoreCase("and")) {
-                if (filterCount == nodeFilterList.size()) {
-                    xmlFilteredData.put(++nodeFilteredIndex, xnList.getValue());
-                }
-            }
-            else if(filterType.equalsIgnoreCase("or")){
-                if (filterCount > 0) {
-                    xmlFilteredData.put(++nodeFilteredIndex, xnList.getValue());
-                }
+            if(addToResults(nodeFilterList, filterType)){
+                xmlFilteredData.put(++nodeFilteredIndex, xnList.getValue());
             }
 
         }
 
         return nodeFilteredIndex;
+    }
+
+    private static boolean addToResults(List<NodeFilter> nodeFilterList, String filterType) {
+
+        boolean addResult = false;
+
+        if(filterType.equalsIgnoreCase("and")) {
+            addResult = true;
+            for (NodeFilter nf : nodeFilterList) {
+                if ((!nf.getIsNot() && nf.getHitCount() == 0) || (nf.getIsNot() && nf.getHitCount() > 0)) {
+                    addResult = false;
+                    break;
+                }
+            }
+        }
+        else if(filterType.equalsIgnoreCase("or")) {
+
+            for (NodeFilter nf : nodeFilterList) {
+                if ((!nf.getIsNot() && nf.getHitCount() > 0) || (nf.getIsNot() && nf.getHitCount() == 0)) {
+                    addResult = true;
+                    break;
+                }
+            }
+        }
+        return addResult;
     }
 
     public void removeFilterXmlData(){
