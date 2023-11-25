@@ -36,14 +36,14 @@
 
 
     <HBox spacing="10.0" VBox.vgrow="NEVER" GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.columnSpan="2">
-        <TextField fx:id="tfMainNode"  promptText="Enter root node"  minWidth="300.0"/>
+        <TextField fx:id="tfMainNode"  promptText="Enter root node"  minWidth="300.0" text="bookstore"/>
         <Button fx:id="butXmlSelector" onAction="#selectXmlFile"  text="Open .xml"  minWidth="100.0" />
         <Label fx:id="msgLabel" />
     </HBox>
 
     <HBox spacing="10.0" VBox.vgrow="NEVER" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
         <Label text="Filter:" minWidth="30.0" />
-        <ComboBox value="AND"  minWidth="80.0" >
+        <ComboBox fx:id="cbFilterType" value="AND"  minWidth="80.0" >
             <items>
                 <FXCollections fx:factory="observableArrayList">
                     <String fx:value="AND"/>

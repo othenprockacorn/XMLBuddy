@@ -18,17 +18,9 @@ public class XmlNode {
         return nodeName;
     }
 
-    public SimpleStringProperty getNodeValue() {
+    public SimpleStringProperty getNodeValue() {return nodeValue;}
 
-        return nodeValue;
-    }
-
-    public SimpleStringProperty getAttributes() {
-
-        return nodeAttributes;
-    }
-
-
+    public SimpleStringProperty getAttributes() {return nodeAttributes;}
 
 
 }

@@ -4,10 +4,15 @@ public class NodeFilter {
 
     private String nameFilter;
     private String valueFilter;
+    private boolean isNot;
+    private boolean isAttribute;
 
-    public NodeFilter(String nameFilter, String valueFilter) {
+
+    public NodeFilter(String nameFilter, String valueFilter, boolean isNot, boolean isAttribute) {
         this.nameFilter = nameFilter;
         this.valueFilter = valueFilter;
+        this.isNot = isNot;
+        this.isAttribute = isAttribute;
     }
 
 
@@ -26,4 +31,8 @@ public class NodeFilter {
     public void setValueFilter(String valueFilter) {
         this.valueFilter = valueFilter;
     }
+
+    public boolean isNot() {return isNot;}
+
+    public boolean isAttribute() {return isAttribute;}
 }

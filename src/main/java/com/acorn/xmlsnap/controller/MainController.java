@@ -58,7 +58,8 @@ public class MainController implements Initializable {
 
     @FXML
     private TextField tfFilter;
-
+    @FXML
+    private ComboBox<String> cbFilterType;
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         xmlImporter = new XMLImporter();
@@ -78,7 +79,7 @@ public class MainController implements Initializable {
 
         tfFilter.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
-                setFilteredViewing();
+                applyFilter();
             }
         } );
 
@@ -119,9 +120,12 @@ public class MainController implements Initializable {
 
     private void setViewing(){
 
-        if(xmlHandler.getXmlIndex() > 0) {
+        if ( xmlHandler.getXmlFilteredIndex() > 0 || xmlHandler.getXmlIndex() > 0) {
             List<XmlNode> xmlRow = xmlHandler.getElement(currentIndex);
-            viewingLabel.setText("Viewing  " + currentIndex + " of " + (xmlHandler.getXmlIndex()) );
+            String msgFiltered = xmlHandler.getXmlFilteredIndex() > 0 ?
+                    "filtered " + xmlHandler.getXmlFilteredIndex() + " of " + xmlHandler.getXmlIndex()
+                    : xmlHandler.getXmlIndex().toString();
+            viewingLabel.setText("Viewing  " + currentIndex + " of " + msgFiltered);
             observableList.setAll(xmlRow);
             tableView.setItems(observableList);
         }
@@ -129,44 +133,39 @@ public class MainController implements Initializable {
     }
 
 
-    private void setFilteredViewing(){
+    private void applyFilter(){
 
         List<NodeFilter> nodeFilterList = getNodeFilterList(tfFilter.getText());
 
         if (nodeFilterList == null || nodeFilterList.isEmpty() ) {
-            tableView.setItems(observableList);
-            return;
+            xmlHandler.removeFilterXmlData();
+            currentIndex = 1;
+
+        }else if (xmlHandler.filterXmlData(nodeFilterList, cbFilterType.getValue()) > 0) {
+            currentIndex = 1;
         }
 
-
-        FilteredList<XmlNode> filteredList = new FilteredList<>(FXCollections.observableList(observableList));
-
-        List<Predicate<XmlNode>> allPredicates = new ArrayList<>();
-
-        for(NodeFilter x : nodeFilterList){
-            allPredicates.add(obj -> {
-                return searchNode(obj, x.getValueFilter(),x.getValueFilter());});
-
-        }
-
-      //  filteredList.setPredicate(allPredicates.stream().reduce(x->true, Predicate::and));
-      //  tableView.setItems(filteredList);
-
+        setViewing();
     }
-
-    private boolean searchNode(XmlNode xn, String node, String value){
-        return (xn.getNodeName().toString().equalsIgnoreCase(node) &&
-                xn.getNodeValue().toString().equalsIgnoreCase(value));
-    }
-
 
     @FXML
     public void moveNext(){
 
-        if(xmlHandler!=null && currentIndex < xmlHandler.getXmlIndex()) {
+        if(xmlHandler!=null){
+
+            if( xmlHandler.getXmlFilteredIndex() > 0 &&  currentIndex >= xmlHandler.getXmlFilteredIndex() ) {
+                return;
+            }
+            else  if( xmlHandler.getXmlIndex() > 0 &&  currentIndex >= xmlHandler.getXmlIndex() ) {
+                return;
+            }
+
             currentIndex++;
             setViewing();
+
         }
+
+
     }
     @FXML
     public void moveBack(){
@@ -187,11 +186,17 @@ public class MainController implements Initializable {
         String filterOptions = filter.trim();
         String[] filters= filterOptions.split(",");
 
-
         for(String f :filters){
             String[] filterParts = f.split("=");
             if (filterParts.length < 2) return null;
-            NodeFilter nf = new NodeFilter(filterParts[0], filterParts[1]);
+
+
+            NodeFilter nf = new NodeFilter(
+                    filterParts[0].replace("!","").replace("@",""),
+                    filterParts[1],
+                    filterParts[0].charAt(0) == '!',
+                    filterParts[0].charAt(0) == '@' || filterParts[0].charAt(1) == '@');
+
             nodeFilterList.add(nf);
         }
         return nodeFilterList;

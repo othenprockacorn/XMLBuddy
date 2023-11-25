@@ -1,6 +1,7 @@
 package com.acorn.xmlsnap.tool;
 
 
+import com.acorn.xmlsnap.model.NodeFilter;
 import com.acorn.xmlsnap.model.XmlNode;
 
 
@@ -15,15 +16,19 @@ import java.util.*;
 public class XMLHandler implements  IXMLHandler{
 
     private final Map<Integer,List<XmlNode>> xmlData;
+    private final Map<Integer,List<XmlNode>> xmlFilteredData;
     private String rowElement = "";
     private String userElement = "";
     private boolean foundUserElement = false;
     private Integer nodeIndex = 0;
+    private Integer nodeFilteredIndex = 0;
 
 
     public XMLHandler(String userElement){
 
         xmlData = new HashMap<>();
+        xmlFilteredData = new HashMap<>();
+
         this.userElement = userElement;
 
     }
@@ -105,16 +110,73 @@ public class XMLHandler implements  IXMLHandler{
 
     }
 
+    public Integer filterXmlData(List<NodeFilter> nodeFilterList, String filterType){
 
-    public Integer getXmlIndex(){
-        return nodeIndex;
+        nodeFilteredIndex=0;
+
+        int filterCount;
+
+
+        for (Map.Entry<Integer,List<XmlNode>> xnList : xmlData.entrySet()){
+
+            filterCount = 0;
+
+            for(XmlNode xn : xnList.getValue()) {
+
+                for (NodeFilter nf : nodeFilterList){
+
+                    if(xn.getNodeName().get().equalsIgnoreCase(nf.getNameFilter())
+                    && xn.getNodeValue().get().equalsIgnoreCase(nf.getValueFilter())){
+                        filterCount++;
+                    }
+
+                }
+
+            }
+
+            if(filterType.equalsIgnoreCase("and")) {
+                if (filterCount == nodeFilterList.size()) {
+                    xmlFilteredData.put(++nodeFilteredIndex, xnList.getValue());
+                }
+            }
+            else if(filterType.equalsIgnoreCase("or")){
+                if (filterCount > 0) {
+                    xmlFilteredData.put(++nodeFilteredIndex, xnList.getValue());
+                }
+            }
+
+        }
+
+        return nodeFilteredIndex;
     }
 
+    public void removeFilterXmlData(){
+
+        xmlFilteredData.clear();
+        nodeFilteredIndex = 0;
+    }
+
+    public Integer getXmlIndex(){
+
+        return nodeIndex;
+    }
+    public Integer getXmlFilteredIndex(){
+
+        return nodeFilteredIndex;
+    }
 
     public List<XmlNode> getElement(Integer index){
 
-        if (index <= nodeIndex)
-            return xmlData.get(index);
+        if (nodeFilteredIndex > 0){
+            if (index <= nodeFilteredIndex) {
+                return xmlFilteredData.get(index);
+            }
+        }
+        else{
+            if (index <= nodeIndex) {
+                return xmlData.get(index);
+            }
+        }
 
        return null;
     }
