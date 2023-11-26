@@ -3,10 +3,9 @@ package com.acorn.xmlsnap.model;
 public class NodeFilter {
 
     private final String nameFilter;
+    private final String attributeName;
     private final String valueFilter;
     private final boolean isNot;
-    private final boolean isAttribute;
-
     int hitCount;
 
     public int getHitCount() {
@@ -17,11 +16,11 @@ public class NodeFilter {
         this.hitCount = hitCount;
     }
 
-    public NodeFilter(String nameFilter, String valueFilter, boolean isNot, boolean isAttribute) {
+    public NodeFilter(String nameFilter, String attributeName, String valueFilter, boolean isNot) {
         this.nameFilter = nameFilter;
+        this.attributeName = attributeName;
         this.valueFilter = valueFilter;
         this.isNot = isNot;
-        this.isAttribute = isAttribute;
         hitCount = 0;
     }
 
@@ -29,12 +28,10 @@ public class NodeFilter {
     public String getNameFilter() {
         return nameFilter;
     }
-
+    public String getAttributeName() {return attributeName;}
     public String getValueFilter() {
         return valueFilter;
     }
-
     public boolean getIsNot() {return isNot;}
 
-    public boolean getIsAttribute() {return isAttribute;}
 }

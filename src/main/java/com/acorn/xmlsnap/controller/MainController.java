@@ -187,15 +187,16 @@ public class MainController implements Initializable {
         String[] filters= filterOptions.split(",");
 
         for(String f :filters){
-            String[] filterParts = f.split("=");
-            if (filterParts.length < 2) return null;
+            String[] filterNodeParts = f.split("=");
+            if (filterNodeParts.length < 2) return null;
 
+            String[] filterNameAndAttribute = filterNodeParts[0].replace("!","").split("@");
 
             NodeFilter nf = new NodeFilter(
-                    filterParts[0].replace("!","").replace("@",""),
-                    filterParts[1],
-                    filterParts[0].charAt(0) == '!',
-                    filterParts[0].charAt(0) == '@' || filterParts[0].charAt(1) == '@');
+                    filterNameAndAttribute[0],
+                    filterNameAndAttribute.length > 1 ? filterNameAndAttribute[1]: "",
+                    filterNodeParts[1],
+                    filterNodeParts[0].charAt(0) == '!');
 
             nodeFilterList.add(nf);
         }

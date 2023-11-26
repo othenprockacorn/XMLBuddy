@@ -1,6 +1,7 @@
 package com.acorn.xmlsnap.tool;
 
 
+import com.acorn.xmlsnap.model.NodeAttribute;
 import com.acorn.xmlsnap.model.NodeFilter;
 import com.acorn.xmlsnap.model.XmlNode;
 
@@ -51,7 +52,8 @@ public class XMLHandler implements  IXMLHandler{
 
             String currentNode = "";
             String currentText = "";
-            StringBuilder nodeAttributes = new StringBuilder();
+            List<NodeAttribute>  attributeList = new ArrayList<>();
+
             while(xmlStreamReader.hasNext() ) {
 
                 eventCode = xmlStreamReader.next();
@@ -79,25 +81,22 @@ public class XMLHandler implements  IXMLHandler{
                                 && rowElement.isEmpty()){
                             rowElement = currentNode;
                         }
-
-
-                        nodeAttributes = new StringBuilder();
+                        attributeList = new ArrayList<>();
                         int attributes = xmlStreamReader.getAttributeCount();
                         for(int i=0; i<attributes; i++) {
-                            String tmpAtt = xmlStreamReader.getAttributeName(i).toString()+"="+xmlStreamReader.getAttributeValue(i);
-                            nodeAttributes.append(nodeAttributes.isEmpty() ? tmpAtt : ", " + tmpAtt);
+                            attributeList.add(new NodeAttribute( xmlStreamReader.getAttributeName(i).toString(), xmlStreamReader.getAttributeValue(i)));
                         }
 
                         if(xmlStreamReader.getLocalName().equalsIgnoreCase(rowElement)) {
                             nodeList = new ArrayList<>();
-                            nodeList.add(new XmlNode(currentNode + "->", "", nodeAttributes.toString()));
+                            nodeList.add(new XmlNode(currentNode, "",attributeList));
                         }
 
                         break;
                     case XMLStreamReader.CHARACTERS:
                         currentText = xmlStreamReader.getText().trim();
                         if (!ignoreList.contains(currentNode) && !currentText.isEmpty())
-                            nodeList.add(new XmlNode(currentNode, currentText, nodeAttributes.toString()) );
+                            nodeList.add(new XmlNode(currentNode, currentText, attributeList) );
                         break;
 
                 }
@@ -120,13 +119,29 @@ public class XMLHandler implements  IXMLHandler{
 
             for (NodeFilter nf : nodeFilterList){
 
-              nf.setHitCount(0);
+                nf.setHitCount(0);
 
                 for(XmlNode xn : xnList.getValue()) {
 
-                    if(( nf.getNameFilter().equalsIgnoreCase(xn.getNodeName().get() ) )
-                            && (nf.getValueFilter().equalsIgnoreCase(xn.getNodeValue().get() ) )) {
-                        nf.setHitCount(nf.getHitCount()+1);
+                    if (nf.getAttributeName() == null || nf.getAttributeName().isEmpty()){
+
+                        if ((nf.getNameFilter().equalsIgnoreCase(xn.getNodeName().get()))
+                                && (nf.getValueFilter().equalsIgnoreCase(xn.getNodeValue().get()))) {
+                            nf.setHitCount(nf.getHitCount() + 1);
+                        }
+                    }
+                    else {
+
+                        for(NodeAttribute nodeAttribute : xn.getAttributesList()){
+
+                            if ( nf.getNameFilter().equalsIgnoreCase(xn.getNodeName().get())
+                                    && nf.getAttributeName().equalsIgnoreCase(nodeAttribute.attName())
+                                    && nf.getValueFilter().equalsIgnoreCase(nodeAttribute.attValue())) {
+                                nf.setHitCount(nf.getHitCount() + 1);
+                            }
+
+                        }
+
                     }
 
                 }
