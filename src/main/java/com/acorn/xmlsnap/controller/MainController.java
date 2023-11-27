@@ -10,9 +10,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 
 
@@ -70,9 +73,46 @@ public class MainController implements Initializable {
         valueColumn.setMinWidth(150.0);
         attributesColumn.setMinWidth(300.0);
 
+        tableView.getSelectionModel().setCellSelectionEnabled(true);
+
         tableView.getColumns().add(nameColumn);
         tableView.getColumns().add(valueColumn);
         tableView.getColumns().add(attributesColumn);
+
+        tableView.getSelectionModel().setCellSelectionEnabled(true);
+        tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        MenuItem item = new MenuItem("Copy");
+        item.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                ObservableList<TablePosition> posList = tableView.getSelectionModel().getSelectedCells();
+                int old_r = -1;
+                StringBuilder clipboardString = new StringBuilder();
+                for (TablePosition p : posList) {
+                    int r = p.getRow();
+                    int c = p.getColumn();
+                    Object cell = tableView.getColumns().get(c).getCellData(r);
+                    if (cell == null)
+                        cell = "";
+                    if (old_r == r)
+                        clipboardString.append('\t');
+                    else if (old_r != -1)
+                        clipboardString.append('\n');
+                    clipboardString.append(cell);
+                    old_r = r;
+                }
+                final ClipboardContent content = new ClipboardContent();
+                content.putString(clipboardString.toString());
+                Clipboard.getSystemClipboard().setContent(content);
+            }
+        });
+        ContextMenu menu = new ContextMenu();
+        menu.getItems().add(item);
+        tableView.setContextMenu(menu);
+
+
+
 
         tfFilter.setOnKeyPressed( event -> {
             if( event.getCode() == KeyCode.ENTER ) {
