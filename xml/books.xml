@@ -6,6 +6,7 @@
   <author>Giada De Laurentiis</author>
   <year>2005</year>
   <price>30.00</price>
+  <pages>300</pages>
 </book>
 
 <book category="children">
@@ -24,13 +25,19 @@
   <author>Vaidyanathan Nagarajan</author>
   <year>2003</year>
   <price>49.99</price>
+  <pages>300</pages>
 </book>
 
 <book category="web" cover="paperback">
   <title lang="en">Learning XML</title>
   <author>Erik T. Ray</author>
   <year>2003</year>
-  <price>39.95</price>
+  <price/>
+<shipping>
+<weight>2</weight>
+<prime>2</prime>
+</shipping>
+
 </book>
 
 </bookstore>

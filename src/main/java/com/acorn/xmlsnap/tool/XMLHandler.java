@@ -6,8 +6,10 @@ import com.acorn.xmlsnap.model.NodeFilter;
 import com.acorn.xmlsnap.model.XmlNode;
 
 
-import javax.xml.namespace.QName;
+
+
 import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.FileInputStream;
@@ -19,16 +21,19 @@ public class XMLHandler implements  IXMLHandler{
     private final Map<Integer,List<XmlNode>> xmlData;
     private final Map<Integer,List<XmlNode>> xmlFilteredData;
     private String rowElement = "";
-    private String userElement = "";
+    private final String userElement;
     private boolean foundUserElement = false;
     private Integer nodeIndex = 0;
     private Integer nodeFilteredIndex = 0;
+
+    private List<String> ignoreList ;
 
 
     public XMLHandler(String userElement){
 
         xmlData = new HashMap<>();
         xmlFilteredData = new HashMap<>();
+        ignoreList = new ArrayList<>();
 
         this.userElement = userElement;
 
@@ -41,9 +46,8 @@ public class XMLHandler implements  IXMLHandler{
         FileInputStream fileInputStream;
         XMLStreamReader xmlStreamReader;
 
-       List<XmlNode> nodeList = new ArrayList<>();
-
-        List<String> ignoreList = new ArrayList<>();
+       List<XmlNode> nodeList;
+       List<NodeAttribute> attributeList;
 
         try {
             fileInputStream = new FileInputStream(fileLocation);
@@ -51,63 +55,119 @@ public class XMLHandler implements  IXMLHandler{
             int eventCode = 0;
 
             String currentNode = "";
-            String currentText = "";
-            List<NodeAttribute>  attributeList = new ArrayList<>();
+
 
             while(xmlStreamReader.hasNext() ) {
 
-                eventCode = xmlStreamReader.next();
+                int xmlEvent = xmlStreamReader.next();
 
-                switch (eventCode) {
-                    case XMLStreamReader.END_ELEMENT:
+                if (xmlEvent == XMLStreamConstants.START_ELEMENT) {
 
-                        if(xmlStreamReader.getLocalName().equalsIgnoreCase(rowElement)) {
-                            xmlData.put(++nodeIndex, nodeList);
-                        }
-                        break;
-                    case XMLStreamReader.START_ELEMENT:
-                        currentNode = xmlStreamReader.getLocalName();
+                    currentNode = xmlStreamReader.getLocalName();
 
+                    if (rowElement.isEmpty()) {
                         if (currentNode.equalsIgnoreCase(userElement)) {
                             foundUserElement = true;
                         }
-
-                        if(!foundUserElement){
+                        if (!foundUserElement) {
                             ignoreList.add(currentNode);
                         }
-
                         if (!currentNode.equalsIgnoreCase(userElement)
                                 && foundUserElement
-                                && rowElement.isEmpty()){
+                                && rowElement.isEmpty()) {
                             rowElement = currentNode;
                         }
-                        attributeList = new ArrayList<>();
-                        int attributes = xmlStreamReader.getAttributeCount();
-                        for(int i=0; i<attributes; i++) {
-                            attributeList.add(new NodeAttribute( xmlStreamReader.getAttributeName(i).toString(), xmlStreamReader.getAttributeValue(i)));
-                        }
+                    }
 
-                        if(xmlStreamReader.getLocalName().equalsIgnoreCase(rowElement)) {
-                            nodeList = new ArrayList<>();
-                            nodeList.add(new XmlNode(currentNode, "",attributeList));
-                        }
+                    attributeList = new ArrayList<>();
+                    int attributes = xmlStreamReader.getAttributeCount();
 
-                        break;
-                    case XMLStreamReader.CHARACTERS:
-                        currentText = xmlStreamReader.getText().trim();
-                        if (!ignoreList.contains(currentNode) && !currentText.isEmpty())
-                            nodeList.add(new XmlNode(currentNode, currentText, attributeList) );
-                        break;
+                    for(int i=0; i<attributes; i++) {
+                        attributeList.add(new NodeAttribute( xmlStreamReader.getAttributeName(i).toString(), xmlStreamReader.getAttributeValue(i)));
+                    }
+
+                    if(xmlStreamReader.getLocalName().equalsIgnoreCase(rowElement)) {
+                        nodeList = new ArrayList<>();
+                        nodeList.add(new XmlNode("["+xmlStreamReader.getLocalName()+"]", "", attributeList));
+                        nodeList = new ArrayList<>(getNodeDetails(xmlStreamReader, nodeList));
+                        nodeList.add(new XmlNode("[end "+xmlStreamReader.getLocalName()+"]", "", new ArrayList<>()));
+                        xmlData.put(++nodeIndex,nodeList);
+                    }
 
                 }
 
             }
+
+            xmlStreamReader.close();
 
         } catch (FileNotFoundException | XMLStreamException e) {
             throw new RuntimeException(e);
         }
 
     }
+
+    private  List<XmlNode> getNodeDetails(XMLStreamReader xmlStreamReader, List<XmlNode> nodeList) throws XMLStreamException{
+
+
+        List<XmlNode> xn = new ArrayList<>(nodeList);
+        List<String> nodeIgnore = new ArrayList<>();
+
+        List<NodeAttribute>  attributeList = new ArrayList<>();
+
+        String currentNode = "";
+        String currentText = "";
+        boolean hadEnded = true;
+
+        while(xmlStreamReader.hasNext()) {
+
+            int xmlEvent = xmlStreamReader.next();
+
+            switch(xmlEvent){
+                case XMLStreamConstants.END_ELEMENT:
+                    hadEnded = true;
+                    currentNode = xmlStreamReader.getLocalName();
+                    if( currentNode.equalsIgnoreCase(rowElement)) {
+                        return xn;
+                    }
+                    else{
+                        if (nodeIgnore.contains(currentNode)){
+                            xn.add(new XmlNode("[end "+currentNode+"]", currentText, attributeList));
+                            nodeIgnore.remove(currentNode);
+                        }
+                        else {
+                            xn.add(new XmlNode(currentNode, currentText, attributeList));
+                        }
+                    }
+                    break;
+                case  XMLStreamConstants.START_ELEMENT:
+
+                    if(!hadEnded){
+                        nodeIgnore.add(currentNode);
+                        xn.add(new XmlNode("["+currentNode+"]", "", attributeList));
+                    }
+
+                    currentText ="";
+                    currentNode = xmlStreamReader.getLocalName();
+                    attributeList = new ArrayList<>();
+                    int attributes = xmlStreamReader.getAttributeCount();
+
+                    for(int i=0; i<attributes; i++) {
+                        attributeList.add(new NodeAttribute( xmlStreamReader.getAttributeName(i).toString(), xmlStreamReader.getAttributeValue(i)));
+                    }
+                    hadEnded = false;
+                    break;
+                case  XMLStreamConstants.CHARACTERS:
+                if (!ignoreList.contains(currentNode)) {
+                    currentText = xmlStreamReader.getText().trim();
+
+                }
+            }
+        }
+
+        return xn;
+
+    }
+
 
     public Integer filterXmlData(List<NodeFilter> nodeFilterList, String filterType){
 
@@ -123,10 +183,14 @@ public class XMLHandler implements  IXMLHandler{
 
                 for(XmlNode xn : xnList.getValue()) {
 
+                    String nodeName = xn.getNodeName().get().replaceAll("[\\[\\](){}]","");
+
                     if (nf.getAttributeName() == null || nf.getAttributeName().isEmpty()){
 
-                        if ((nf.getNameFilter().equalsIgnoreCase(xn.getNodeName().get()))
-                                && (nf.getValueFilter().equalsIgnoreCase(xn.getNodeValue().get()))) {
+                        if (nf.getNameFilter().equalsIgnoreCase(nodeName)
+                                && (nf.getValueFilter().equalsIgnoreCase(xn.getNodeValue().get())
+                                || (nf.getValueFilter().equals("\"\"") && xn.getNodeValue().get().isEmpty())
+                        )) {
                             nf.setHitCount(nf.getHitCount() + 1);
                         }
                     }
@@ -134,9 +198,12 @@ public class XMLHandler implements  IXMLHandler{
 
                         for(NodeAttribute nodeAttribute : xn.getAttributesList()){
 
-                            if ( nf.getNameFilter().equalsIgnoreCase(xn.getNodeName().get())
+                            if ( nf.getNameFilter().equalsIgnoreCase(nodeName)
                                     && nf.getAttributeName().equalsIgnoreCase(nodeAttribute.attName())
-                                    && nf.getValueFilter().equalsIgnoreCase(nodeAttribute.attValue())) {
+                                    &&
+                                    (nf.getValueFilter().equalsIgnoreCase(nodeAttribute.attValue())
+                                    || nf.getValueFilter().equals("\"\"") && nodeAttribute.attValue().isEmpty())
+                                    ) {
                                 nf.setHitCount(nf.getHitCount() + 1);
                             }
 
@@ -157,7 +224,7 @@ public class XMLHandler implements  IXMLHandler{
         return nodeFilteredIndex;
     }
 
-    private static boolean addToResults(List<NodeFilter> nodeFilterList, String filterType) {
+    private  boolean addToResults(List<NodeFilter> nodeFilterList, String filterType) {
 
         boolean addResult = false;
 

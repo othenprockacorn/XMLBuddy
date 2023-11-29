@@ -107,6 +107,7 @@ public class MainController implements Initializable {
                 Clipboard.getSystemClipboard().setContent(content);
             }
         });
+
         ContextMenu menu = new ContextMenu();
         menu.getItems().add(item);
         tableView.setContextMenu(menu);
@@ -174,14 +175,21 @@ public class MainController implements Initializable {
 
         List<NodeFilter> nodeFilterList = getNodeFilterList(tfFilter.getText());
 
-        if (nodeFilterList == null || nodeFilterList.isEmpty() ) {
+        if (tfFilter.getText().isEmpty() ) {
             xmlHandler.removeFilterXmlData();
-            currentIndex = 1;
-
-        }else if (xmlHandler.filterXmlData(nodeFilterList, cbFilterType.getValue()) > 0) {
-            currentIndex = 1;
+        }else if (nodeFilterList == null
+                || nodeFilterList.isEmpty()
+                || xmlHandler.filterXmlData(nodeFilterList, cbFilterType.getValue()) == 0) {
+            xmlHandler.removeFilterXmlData();
+            Alert alert = new Alert(Alert.AlertType.NONE);
+            ButtonType type = new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE);
+            alert.setTitle("No match found");
+            alert.setContentText("Did not find any results for " + tfFilter.getText());
+            alert.getDialogPane().getButtonTypes().add(type);
+            alert.showAndWait();
         }
 
+        currentIndex = 1;
         setViewing();
     }
 
