@@ -5,9 +5,6 @@ import com.acorn.xmlsnap.model.NodeAttribute;
 import com.acorn.xmlsnap.model.NodeFilter;
 import com.acorn.xmlsnap.model.XmlNode;
 
-
-
-
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -26,7 +23,7 @@ public class XMLHandler implements  IXMLHandler{
     private Integer nodeIndex = 0;
     private Integer nodeFilteredIndex = 0;
 
-    private List<String> ignoreList ;
+    private final List<String> ignoreList ;
 
 
     public XMLHandler(String userElement){
@@ -88,9 +85,11 @@ public class XMLHandler implements  IXMLHandler{
 
                     if(xmlStreamReader.getLocalName().equalsIgnoreCase(rowElement)) {
                         nodeList = new ArrayList<>();
-                        nodeList.add(new XmlNode("["+xmlStreamReader.getLocalName()+"]", "", attributeList));
+                        nodeList.add(new XmlNode(xmlStreamReader.getLocalName(), "", userElement,
+                                true, false, 0, attributeList));
                         nodeList = new ArrayList<>(getNodeDetails(xmlStreamReader, nodeList));
-                        nodeList.add(new XmlNode("[end "+xmlStreamReader.getLocalName()+"]", "", new ArrayList<>()));
+                        nodeList.add(new XmlNode(xmlStreamReader.getLocalName(), "", userElement,
+                                true, true, 0, new ArrayList<>()));
                         xmlData.put(++nodeIndex,nodeList);
                     }
 
@@ -112,6 +111,9 @@ public class XMLHandler implements  IXMLHandler{
         List<XmlNode> xn = new ArrayList<>(nodeList);
         List<String> nodeIgnore = new ArrayList<>();
 
+        List<String> nodeParentList = new ArrayList<>();
+        nodeParentList.add(rowElement);
+
         List<NodeAttribute>  attributeList = new ArrayList<>();
 
         String currentNode = "";
@@ -130,20 +132,52 @@ public class XMLHandler implements  IXMLHandler{
                         return xn;
                     }
                     else{
+
                         if (nodeIgnore.contains(currentNode)){
-                            xn.add(new XmlNode("[end "+currentNode+"]", currentText, attributeList));
-                            nodeIgnore.remove(currentNode);
+
+                            nodeParentList.remove(nodeParentList.size() - 1);
+
+                            xn.add(new XmlNode(
+                                    currentNode,
+                                    currentText,
+                                    nodeParentList.get(nodeParentList.size() - 1),
+                                   true,
+                                    true,
+                                    0,
+                                    new ArrayList<>()
+                                    )
+                            );
                         }
-                        else {
-                            xn.add(new XmlNode(currentNode, currentText, attributeList));
+                        else{
+                            xn.add(new XmlNode(
+                                    currentNode,
+                                    currentText,
+                                    nodeParentList.get(nodeParentList.size() - 1),
+                                    false,
+                                    false,
+                                    0,
+                                    attributeList
+                                    )
+                            );
+
                         }
+
                     }
                     break;
                 case  XMLStreamConstants.START_ELEMENT:
 
                     if(!hadEnded){
                         nodeIgnore.add(currentNode);
-                        xn.add(new XmlNode("["+currentNode+"]", "", attributeList));
+                        xn.add(new XmlNode(
+                                currentNode,
+                                "",
+                                nodeParentList.get(nodeParentList.size() - 1),
+                                true,
+                                false,
+                                0,
+                                attributeList));
+
+                        nodeParentList.add(currentNode);
                     }
 
                     currentText ="";
@@ -183,14 +217,16 @@ public class XMLHandler implements  IXMLHandler{
 
                 for(XmlNode xn : xnList.getValue()) {
 
+                    xn.setFilter(false);
                     String nodeName = xn.getNodeName().get().replaceAll("[\\[\\](){}]","");
 
-                    if (nf.getAttributeName() == null || nf.getAttributeName().isEmpty()){
+                    if (nf.getAttributeName().get() == null || nf.getAttributeName().get().isEmpty()){
 
-                        if (nf.getNameFilter().equalsIgnoreCase(nodeName)
-                                && (nf.getValueFilter().equalsIgnoreCase(xn.getNodeValue().get())
-                                || (nf.getValueFilter().equals("\"\"") && xn.getNodeValue().get().isEmpty())
+                        if (nf.getNameFilter().get().equalsIgnoreCase(nodeName)
+                                && (nf.getValueFilter().get().equalsIgnoreCase(xn.getNodeValue().get())
+                                || (nf.getValueFilter().get().equals("\"\"") && xn.getNodeValue().get().isEmpty())
                         )) {
+                            xn.setFilter(true);
                             nf.setHitCount(nf.getHitCount() + 1);
                         }
                     }
@@ -198,12 +234,13 @@ public class XMLHandler implements  IXMLHandler{
 
                         for(NodeAttribute nodeAttribute : xn.getAttributesList()){
 
-                            if ( nf.getNameFilter().equalsIgnoreCase(nodeName)
-                                    && nf.getAttributeName().equalsIgnoreCase(nodeAttribute.attName())
+                            if ( nf.getNameFilter().get().equalsIgnoreCase(nodeName)
+                                    && nf.getAttributeName().get().equalsIgnoreCase(nodeAttribute.attName())
                                     &&
-                                    (nf.getValueFilter().equalsIgnoreCase(nodeAttribute.attValue())
-                                    || nf.getValueFilter().equals("\"\"") && nodeAttribute.attValue().isEmpty())
+                                    (nf.getValueFilter().get().equalsIgnoreCase(nodeAttribute.attValue())
+                                    || nf.getValueFilter().get().equals("\"\"") && nodeAttribute.attValue().isEmpty())
                                     ) {
+                                xn.setFilter(true);
                                 nf.setHitCount(nf.getHitCount() + 1);
                             }
 
@@ -251,6 +288,13 @@ public class XMLHandler implements  IXMLHandler{
 
     public void removeFilterXmlData(){
 
+        for (Map.Entry<Integer,List<XmlNode>> xnList : xmlData.entrySet()){
+            for(XmlNode xn : xnList.getValue()) {
+                xn.setFilter(false);
+            }
+        }
+
+
         xmlFilteredData.clear();
         nodeFilteredIndex = 0;
     }
@@ -279,6 +323,9 @@ public class XMLHandler implements  IXMLHandler{
 
        return null;
     }
+
+
+
 
 
 }

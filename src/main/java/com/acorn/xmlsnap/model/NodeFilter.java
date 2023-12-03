@@ -1,10 +1,12 @@
 package com.acorn.xmlsnap.model;
 
+import javafx.beans.property.SimpleStringProperty;
+
 public class NodeFilter {
 
-    private final String nameFilter;
-    private final String attributeName;
-    private final String valueFilter;
+    private final SimpleStringProperty nameFilter = new SimpleStringProperty("");;
+    private final SimpleStringProperty attributeName = new SimpleStringProperty("");;
+    private final SimpleStringProperty valueFilter = new SimpleStringProperty("");;
     private final boolean isNot;
     int hitCount;
 
@@ -17,19 +19,18 @@ public class NodeFilter {
     }
 
     public NodeFilter(String nameFilter, String attributeName, String valueFilter, boolean isNot) {
-        this.nameFilter = nameFilter;
-        this.attributeName = attributeName;
-        this.valueFilter = valueFilter;
+        this.nameFilter.set(nameFilter);
+        this.attributeName.set(attributeName);
+        this.valueFilter.set(valueFilter);
         this.isNot = isNot;
         hitCount = 0;
     }
 
 
-    public String getNameFilter() {
-        return nameFilter;
+    public SimpleStringProperty getNameFilter() {return nameFilter;
     }
-    public String getAttributeName() {return attributeName;}
-    public String getValueFilter() {
+    public SimpleStringProperty getAttributeName() {return attributeName;}
+    public SimpleStringProperty getValueFilter() {
         return valueFilter;
     }
     public boolean getIsNot() {return isNot;}

@@ -14,9 +14,12 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
+import javafx.scene.paint.Color;
+import javafx.util.Callback;
 
 
 import java.net.URL;
@@ -37,54 +40,104 @@ public class MainController implements Initializable {
 
     private final ObservableList<XmlNode> observableList = FXCollections.observableArrayList();
 
-    @FXML
-    private TableView<XmlNode> tableView;
-    @FXML
-    private final TableColumn<XmlNode, String> nameColumn = new TableColumn<>("Name");
-    @FXML
-    private final TableColumn<XmlNode, String> valueColumn = new TableColumn<>("Value");
-    @FXML
-    private final TableColumn<XmlNode, String> attributesColumn = new TableColumn<>("Attributes");
+    @FXML private TableView<XmlNode> tableView = new TableView<>();
+    @FXML private final TableColumn<XmlNode, String> nameColumn = new TableColumn<>("Name");
+    @FXML private final TableColumn<XmlNode, String> valueColumn = new TableColumn<>("Value");
+    @FXML private final TableColumn<XmlNode, String> parentColumn = new TableColumn<>("Parent");
+    @FXML private final TableColumn<XmlNode, String> attributesColumn = new TableColumn<>("Attributes");
 
-    @FXML
-    private TextField tfMainNode;
-    @FXML
-    private Label msgLabel;
-    @FXML
-    private Label viewingLabel;
 
-    @FXML
-    private Button butXmlSelector;
+    @FXML private TableView<NodeFilter> tableViewFilter = new TableView<>();
+    @FXML private final TableColumn<NodeFilter, String> typeCol = new TableColumn<>("Filter Type");
+    @FXML private final TableColumn<NodeFilter, String> nameCol = new TableColumn<>("Node");
+    @FXML private final TableColumn<NodeFilter, String> evalCol = new TableColumn<>("Evaluation");
+    @FXML private final TableColumn<NodeFilter, String> valueCol = new TableColumn<>("Value");
 
-    @FXML
-    private TextField tfFilter;
-    @FXML
-    private ComboBox<String> cbFilterType;
+    @FXML private TextField tfMainNode;
+    @FXML private Label msgLabel;
+    @FXML private Label viewingLabel;
+
+    @FXML private Button butXmlSelector;
+
+    @FXML private TextField tfFilter;
+    @FXML private ComboBox<String> cbFilterType;
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         xmlImporter = new XMLImporter();
 
+        //Filter table
+        tableViewFilter.setEditable(true);
 
-        nameColumn.setCellValueFactory(cellData -> cellData.getValue().getNodeName());
-        valueColumn.setCellValueFactory(cellData -> cellData.getValue().getNodeValue());
-        attributesColumn.setCellValueFactory(cellData -> cellData.getValue().getAttributes());
+        nameCol.setCellValueFactory(cellData -> cellData.getValue().getNameFilter());
+        nameCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        tableViewFilter.getColumns().add(nameCol);
 
-        nameColumn.setMinWidth(150.0);
-        valueColumn.setMinWidth(150.0);
-        attributesColumn.setMinWidth(300.0);
 
+        //Main Table
         tableView.getSelectionModel().setCellSelectionEnabled(true);
-
+        nameColumn.setCellValueFactory(cellData -> cellData.getValue().getNodeName());
+        nameColumn.setSortable(false);
+        nameColumn.setMinWidth(200.0);
         tableView.getColumns().add(nameColumn);
+        valueColumn.setCellValueFactory(cellData -> cellData.getValue().getNodeValue());
+        valueColumn.setSortable(false);
+        valueColumn.setMinWidth(200.0);
         tableView.getColumns().add(valueColumn);
+        parentColumn.setCellValueFactory(cellData -> cellData.getValue().getNodeParentName());
+        parentColumn.setSortable(false);
+        parentColumn.setMinWidth(200.0);
+        tableView.getColumns().add(parentColumn);
+        attributesColumn.setCellValueFactory(cellData -> cellData.getValue().getAttributes());
+        attributesColumn.setSortable(false);
+        attributesColumn.setMinWidth(300.0);
         tableView.getColumns().add(attributesColumn);
-
         tableView.getSelectionModel().setCellSelectionEnabled(true);
         tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
+
+        tableView.setRowFactory(new Callback<TableView<XmlNode>, TableRow<XmlNode>>() {
+            @Override
+            public TableRow<XmlNode> call(TableView<XmlNode> param) {
+                return new TableRow<XmlNode>() {
+                    @Override
+                    protected void updateItem(XmlNode item, boolean empty) {
+                        super.updateItem(item, empty);
+
+                        if(item!=null && item.isFilter()) {
+                            setStyle("-fx-background-color:#22bad9;-fx-font-weight: bold");
+                        }
+                        else{
+                            setStyle("");
+                        }
+                    }
+                };
+            }
+        });
+
+
+        //Right-Click menu
+        MenuItem item = getMenuItem();
+        ContextMenu menu = new ContextMenu();
+        menu.getItems().add(item);
+        tableView.setContextMenu(menu);
+
+        //Filter
+        tfFilter.setOnKeyPressed( event -> {
+            if( event.getCode() == KeyCode.ENTER ) {
+                applyFilter();
+            }
+        } );
+
+        //Set focus on open file button
+        Platform.runLater(() ->  butXmlSelector.requestFocus() );
+
+    }
+
+    private MenuItem getMenuItem() {
         MenuItem item = new MenuItem("Copy");
         item.setOnAction(new EventHandler<ActionEvent>() {
             @Override
+            @SuppressWarnings("rawtypes")
             public void handle(ActionEvent event) {
                 ObservableList<TablePosition> posList = tableView.getSelectionModel().getSelectedCells();
                 int old_r = -1;
@@ -107,22 +160,7 @@ public class MainController implements Initializable {
                 Clipboard.getSystemClipboard().setContent(content);
             }
         });
-
-        ContextMenu menu = new ContextMenu();
-        menu.getItems().add(item);
-        tableView.setContextMenu(menu);
-
-
-
-
-        tfFilter.setOnKeyPressed( event -> {
-            if( event.getCode() == KeyCode.ENTER ) {
-                applyFilter();
-            }
-        } );
-
-        Platform.runLater(() ->  butXmlSelector.requestFocus() );
-
+        return item;
     }
 
     @FXML
@@ -161,9 +199,9 @@ public class MainController implements Initializable {
         if ( xmlHandler.getXmlFilteredIndex() > 0 || xmlHandler.getXmlIndex() > 0) {
             List<XmlNode> xmlRow = xmlHandler.getElement(currentIndex);
             String msgFiltered = xmlHandler.getXmlFilteredIndex() > 0 ?
-                    "filtered " + xmlHandler.getXmlFilteredIndex() + " of " + xmlHandler.getXmlIndex()
+                    " (filtered " + xmlHandler.getXmlFilteredIndex() + ") of " + xmlHandler.getXmlIndex()
                     : xmlHandler.getXmlIndex().toString();
-            viewingLabel.setText("Viewing  " + currentIndex + " of " + msgFiltered);
+            viewingLabel.setText("Viewing " + currentIndex + " of " + msgFiltered);
             observableList.setAll(xmlRow);
             tableView.setItems(observableList);
         }

@@ -29,7 +29,8 @@
     <rowConstraints>
         <RowConstraints minHeight="20.0"  vgrow="SOMETIMES"/>
         <RowConstraints minHeight="30.0" vgrow="SOMETIMES" valignment="BOTTOM" />
-        <RowConstraints minHeight="100.0"  percentHeight="85" vgrow="SOMETIMES" />
+        <RowConstraints minHeight="30.0" vgrow="SOMETIMES" valignment="BOTTOM" />
+        <RowConstraints minHeight="100.0"  percentHeight="70" vgrow="SOMETIMES" />
         <RowConstraints minHeight="20.0"  vgrow="SOMETIMES" />
 
     </rowConstraints>
@@ -41,7 +42,12 @@
         <Label fx:id="msgLabel" />
     </HBox>
 
-    <HBox spacing="10.0" VBox.vgrow="NEVER" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
+
+    <TableView fx:id="tableViewFilter" GridPane.columnIndex="0"  GridPane.rowIndex="1" GridPane.columnSpan="2">
+    </TableView>
+
+
+    <HBox spacing="10.0" VBox.vgrow="NEVER" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
         <Label text="Filter:" minWidth="30.0" />
         <ComboBox fx:id="cbFilterType" value="AND"  minWidth="80.0" >
             <items>
@@ -55,15 +61,15 @@
     </HBox>
 
 
-    <TableView fx:id="tableView" GridPane.columnIndex="0"  GridPane.rowIndex="2" GridPane.columnSpan="2">
+    <TableView fx:id="tableView" GridPane.columnIndex="0"  GridPane.rowIndex="3" GridPane.columnSpan="2">
     </TableView>
 
 
-    <HBox spacing="10.0" VBox.vgrow="NEVER" GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="2">
+    <HBox spacing="10.0" VBox.vgrow="NEVER" GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.columnSpan="2">
         <Button fx:id="butBack"  onAction="#moveBack" minWidth="100.0" text="Back" />
         <Button fx:id="butNext"  onAction="#moveNext" minWidth="100.0" text="Next" />
     </HBox>
 
-    <Label fx:id="viewingLabel"  GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+    <Label fx:id="viewingLabel"  GridPane.columnIndex="1" GridPane.rowIndex="4"/>
 
 </GridPane>

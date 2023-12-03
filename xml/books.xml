@@ -34,7 +34,9 @@
   <year>2003</year>
   <price/>
 <shipping>
-<weight>2</weight>
+  <properties>
+    <weight>2</weight>
+  </properties>
 <prime>2</prime>
 </shipping>
 

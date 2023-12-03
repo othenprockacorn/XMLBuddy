@@ -9,18 +9,53 @@ public class XmlNode {
 
     private final SimpleStringProperty nodeName = new SimpleStringProperty("");
     private final SimpleStringProperty nodeValue = new SimpleStringProperty("");
+    private final SimpleStringProperty nodeParentName = new SimpleStringProperty("");
+    private final boolean hasChildren;
+    private final boolean endNode;
+    private final Integer nodePosition;
+    private boolean isFilter;
+    List<NodeAttribute> nodeAttributeList;
 
-
-    List<NodeAttribute> nodeAttributeList = new ArrayList<>();
-
-    public XmlNode(String nodeName, String nodeValue, List<NodeAttribute> nodeAttributeList){
+    public XmlNode(String nodeName, String nodeValue, String nodeParentName, boolean hasChildren,
+                   boolean endNode, Integer nodePosition, List<NodeAttribute> nodeAttributeList){
         this.nodeName.set(nodeName);
         this.nodeValue.set(nodeValue);
+        this.nodeParentName.set(nodeParentName);
+        this.hasChildren = hasChildren;
+        this.nodePosition = nodePosition;
+        this.endNode = endNode;
+        this.isFilter = false;
         this.nodeAttributeList = new ArrayList<>(nodeAttributeList);
     }
 
-    public SimpleStringProperty getNodeName() {return nodeName;}
+    public SimpleStringProperty getNodeName() {
+
+        SimpleStringProperty returnProperty = new SimpleStringProperty();
+
+        if (hasChildren && endNode){
+            returnProperty.set( "end " + nodeName.getValue());
+        }
+        else{
+            returnProperty = nodeName;
+        }
+
+        return returnProperty;
+
+    }
     public SimpleStringProperty getNodeValue() {return nodeValue;}
+    public SimpleStringProperty getNodeParentName() {return nodeParentName;}
+    public boolean getHasChildren(){ return hasChildren;}
+    public boolean getEndNode(){ return endNode;}
+    public Integer getNodePosition(){ return nodePosition;}
+
+    public boolean isFilter() {
+        return isFilter;
+    }
+
+    public void setFilter(boolean filter) {
+        isFilter = filter;
+    }
+
     public SimpleStringProperty getAttributes() {
 
         StringBuilder nodeAttributes = new StringBuilder();
