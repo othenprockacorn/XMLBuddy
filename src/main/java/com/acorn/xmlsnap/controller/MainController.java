@@ -106,6 +106,9 @@ public class MainController implements Initializable {
                         if(item!=null && item.isFilter()) {
                             setStyle("-fx-background-color:#22bad9;-fx-font-weight: bold");
                         }
+                        else if (item!=null && item.getHasChildren()) {
+                            setStyle("-fx-font-weight: bold");
+                        }
                         else{
                             setStyle("");
                         }

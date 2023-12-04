@@ -32,16 +32,26 @@ public class XmlNode {
 
         SimpleStringProperty returnProperty = new SimpleStringProperty();
 
+        String countDisplay = hasChildren && nodePosition > 1 ? " (" + nodePosition + ")" : "";
+
+        String rtnValue = nodeName.getValue() + countDisplay;
+
         if (hasChildren && endNode){
-            returnProperty.set( "end " + nodeName.getValue());
+            rtnValue =   "⟵" + rtnValue;
         }
-        else{
-            returnProperty = nodeName;
+        else if (hasChildren && !endNode){
+            rtnValue =   "⟶" + rtnValue;
         }
+
+
+
+        returnProperty.set(rtnValue);
 
         return returnProperty;
 
     }
+
+    public SimpleStringProperty getSearchNodeName() {return nodeName;}
     public SimpleStringProperty getNodeValue() {return nodeValue;}
     public SimpleStringProperty getNodeParentName() {return nodeParentName;}
     public boolean getHasChildren(){ return hasChildren;}

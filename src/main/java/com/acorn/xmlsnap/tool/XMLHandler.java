@@ -86,10 +86,10 @@ public class XMLHandler implements  IXMLHandler{
                     if(xmlStreamReader.getLocalName().equalsIgnoreCase(rowElement)) {
                         nodeList = new ArrayList<>();
                         nodeList.add(new XmlNode(xmlStreamReader.getLocalName(), "", userElement,
-                                true, false, 0, attributeList));
+                                true, false, 1, attributeList));
                         nodeList = new ArrayList<>(getNodeDetails(xmlStreamReader, nodeList));
                         nodeList.add(new XmlNode(xmlStreamReader.getLocalName(), "", userElement,
-                                true, true, 0, new ArrayList<>()));
+                                true, true, 1, new ArrayList<>()));
                         xmlData.put(++nodeIndex,nodeList);
                     }
 
@@ -109,12 +109,14 @@ public class XMLHandler implements  IXMLHandler{
 
 
         List<XmlNode> xn = new ArrayList<>(nodeList);
+        List<NodeAttribute>  attributeList = new ArrayList<>();
         List<String> nodeIgnore = new ArrayList<>();
-
         List<String> nodeParentList = new ArrayList<>();
         nodeParentList.add(rowElement);
 
-        List<NodeAttribute>  attributeList = new ArrayList<>();
+        List<String> nodeCountList = new ArrayList<>();
+        nodeParentList.add(rowElement);
+
 
         String currentNode = "";
         String currentText = "";
@@ -143,7 +145,7 @@ public class XMLHandler implements  IXMLHandler{
                                     nodeParentList.get(nodeParentList.size() - 1),
                                    true,
                                     true,
-                                    0,
+                                    Collections.frequency(nodeCountList, nodeParentList.get(nodeParentList.size() - 1)+currentNode),
                                     new ArrayList<>()
                                     )
                             );
@@ -155,7 +157,7 @@ public class XMLHandler implements  IXMLHandler{
                                     nodeParentList.get(nodeParentList.size() - 1),
                                     false,
                                     false,
-                                    0,
+                                    Collections.frequency(nodeCountList, nodeParentList.get(nodeParentList.size() - 1)+currentNode),
                                     attributeList
                                     )
                             );
@@ -163,6 +165,7 @@ public class XMLHandler implements  IXMLHandler{
                         }
 
                     }
+
                     break;
                 case  XMLStreamConstants.START_ELEMENT:
 
@@ -174,7 +177,7 @@ public class XMLHandler implements  IXMLHandler{
                                 nodeParentList.get(nodeParentList.size() - 1),
                                 true,
                                 false,
-                                0,
+                                Collections.frequency(nodeCountList, nodeParentList.get(nodeParentList.size() - 1)+currentNode),
                                 attributeList));
 
                         nodeParentList.add(currentNode);
@@ -182,6 +185,9 @@ public class XMLHandler implements  IXMLHandler{
 
                     currentText ="";
                     currentNode = xmlStreamReader.getLocalName();
+
+                    nodeCountList.add(nodeParentList.get(nodeParentList.size() - 1)+currentNode);
+
                     attributeList = new ArrayList<>();
                     int attributes = xmlStreamReader.getAttributeCount();
 
@@ -218,7 +224,7 @@ public class XMLHandler implements  IXMLHandler{
                 for(XmlNode xn : xnList.getValue()) {
 
                     xn.setFilter(false);
-                    String nodeName = xn.getNodeName().get().replaceAll("[\\[\\](){}]","");
+                    String nodeName = xn.getSearchNodeName().get();
 
                     if (nf.getAttributeName().get() == null || nf.getAttributeName().get().isEmpty()){
 

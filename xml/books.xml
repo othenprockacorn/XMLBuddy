@@ -36,6 +36,13 @@
 <shipping>
   <properties>
     <weight>2</weight>
+    <year>2003</year>
+    <year>2005</year>
+  </properties>
+  <properties>
+    <weight>5</weight>
+    <year>2006</year>
+    <year>2009</year>
   </properties>
 <prime>2</prime>
 </shipping>
