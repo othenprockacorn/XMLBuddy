@@ -17,6 +17,8 @@ public class XMLHandler implements  IXMLHandler{
 
     private final Map<Integer,List<XmlNode>> xmlData;
     private final Map<Integer,List<XmlNode>> xmlFilteredData;
+
+    private final HashSet<String> nodeNameList = new HashSet<>();
     private String rowElement = "";
     private final String userElement;
     private boolean foundUserElement = false;
@@ -151,6 +153,7 @@ public class XMLHandler implements  IXMLHandler{
                             );
                         }
                         else{
+                            nodeNameList.add(currentNode);
                             xn.add(new XmlNode(
                                     currentNode,
                                     currentText,
@@ -214,6 +217,9 @@ public class XMLHandler implements  IXMLHandler{
         nodeFilteredIndex=0;
         boolean  addIsToResults;
 
+        removeFilterXmlData();
+
+
         for (Map.Entry<Integer,List<XmlNode>> xnList : xmlData.entrySet()){
 
 
@@ -223,7 +229,6 @@ public class XMLHandler implements  IXMLHandler{
 
                 for(XmlNode xn : xnList.getValue()) {
 
-                    xn.setFilter(false);
                     String nodeName = xn.getSearchNodeName().get();
 
                     if (nf.getAttributeName().get() == null || nf.getAttributeName().get().isEmpty()){
@@ -267,6 +272,10 @@ public class XMLHandler implements  IXMLHandler{
         return nodeFilteredIndex;
     }
 
+    public HashSet<String> getNoUsIdeNameList(){
+        return nodeNameList;
+    }
+
     private  boolean addToResults(List<NodeFilter> nodeFilterList, String filterType) {
 
         boolean addResult = false;
@@ -274,7 +283,8 @@ public class XMLHandler implements  IXMLHandler{
         if(filterType.equalsIgnoreCase("and")) {
             addResult = true;
             for (NodeFilter nf : nodeFilterList) {
-                if ((!nf.getIsNot() && nf.getHitCount() == 0) || (nf.getIsNot() && nf.getHitCount() > 0)) {
+                if ((!nf.getEvalFilter().get().equals("Not equal to") && nf.getHitCount() == 0)
+                        || (nf.getEvalFilter().get().equals("Not equal to") && nf.getHitCount() > 0)) {
                     addResult = false;
                     break;
                 }
@@ -283,7 +293,11 @@ public class XMLHandler implements  IXMLHandler{
         else if(filterType.equalsIgnoreCase("or")) {
 
             for (NodeFilter nf : nodeFilterList) {
-                if ((!nf.getIsNot() && nf.getHitCount() > 0) || (nf.getIsNot() && nf.getHitCount() == 0)) {
+                if (
+                        (!nf.getEvalFilter().get().equals("Not equal to") && nf.getHitCount() > 0)
+                        ||
+                        (nf.getEvalFilter().get().equals("Not equal to") && nf.getHitCount() == 0)
+                ) {
                     addResult = true;
                     break;
                 }
@@ -300,7 +314,6 @@ public class XMLHandler implements  IXMLHandler{
             }
         }
 
-
         xmlFilteredData.clear();
         nodeFilteredIndex = 0;
     }
@@ -313,7 +326,6 @@ public class XMLHandler implements  IXMLHandler{
 
         return nodeFilteredIndex;
     }
-
     public List<XmlNode> getElement(Integer index){
 
         if (nodeFilteredIndex > 0){
