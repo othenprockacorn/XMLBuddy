@@ -9,6 +9,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,6 +23,7 @@ import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.util.Callback;
 
@@ -61,7 +63,8 @@ public class MainController implements Initializable {
     @FXML private GridPane mainGridPane;
 
     @FXML private Button butXmlSelector;
-    @FXML private ComboBox<String> cbFilterType;
+    @FXML private Button applyFilter;
+
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -73,6 +76,7 @@ public class MainController implements Initializable {
         tableViewFilter.setPlaceholder(new Label("No filters"));
         tableViewFilter.getStyleClass().add("filter-table-view");
         tableViewFilter.setItems(observableFilterList);
+
 
         //Filter table
         typeCol.setMaxWidth(100.0);
@@ -143,10 +147,7 @@ public class MainController implements Initializable {
             return cell ;
         });
 
-        nameCol.setOnEditCommit(e -> {
-            e.getRowValue().setNameFilter(e.getNewValue());
-            tableViewFilter.requestFocus();
-        });
+
         tableViewFilter.getColumns().add(nameCol);
 
         evalCol.setCellValueFactory(cellData -> cellData.getValue().getEvalFilter());
@@ -180,10 +181,6 @@ public class MainController implements Initializable {
             return cell ;
         });
 
-        evalCol.setOnEditCommit(e -> {
-            e.getRowValue().setEvalFilter(e.getNewValue());
-            tableViewFilter.requestFocus();
-        });
 
         tableViewFilter.getColumns().add(evalCol);
 
@@ -193,9 +190,10 @@ public class MainController implements Initializable {
 
             @Override
             public TableCell<NodeFilter, String> call(TableColumn<NodeFilter, String> param) {
-                return new TableCell<NodeFilter, String>() {
 
-                    private final TextField textField = new TextField();
+                final TextField textField = new TextField();
+
+                TableCell<NodeFilter, String> cell = new TableCell<NodeFilter, String>() {
 
                     @Override
                     protected void updateItem(String value, boolean empty){
@@ -210,15 +208,32 @@ public class MainController implements Initializable {
                         }
                     }
                 };
+
+//                textField.onKeyPressedProperty().set(e -> {
+//                    if (e.getCode() == KeyCode.ENTER) {
+//
+//                        NodeFilter item = tableViewFilter.getItems().get(cell.getIndex()) ;
+//                        item.setValueFilter(textField.getText());
+//
+//                    }
+//                });
+
+                textField.focusedProperty().addListener((arg0, oldPropertyValue, newPropertyValue) -> {
+                    if (!newPropertyValue) {
+                        NodeFilter item = tableViewFilter.getItems().get(cell.getIndex()) ;
+                        item.setValueFilter(textField.getText());
+                    }
+                });
+
+               cell.itemProperty().addListener((obs, oldItem, newItem) -> textField.setText(newItem));
+
+                return cell;
             }
         });
 
         valueCol.setSortable(false);
         valueCol.setMinWidth(200.0);
-        valueCol.setOnEditCommit(e -> {
-            e.getRowValue().setValueFilter(e.getNewValue());
-            tableViewFilter.requestFocus();
-        });
+
 
         tableViewFilter.getColumns().add(valueCol);
 

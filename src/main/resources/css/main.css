@@ -6,17 +6,23 @@
 
 
 
-.filter-table-view .table-cell .table-row-cell:odd .table-row-cell:even{
-    -fx-alignment: CENTER-LEFT;
-    -fx-border-color: #3b91d2;
-    -fx-padding: 2 0 2 10px;
-    -fx-border-radius: 5;
-    -fx-cell-size:40px;
+.filter-table-view {
+    -fx-background-color: transparent;
+    -fx-selection-bar-non-focused: transparent;
+    -fx-highlight-fill: transparent;
+
 }
 
-.filter-table-view .table-cell .button{
-   -fx-text-fill: #571010;
-    -fx-font-weight: bold;
+.filter-table-view .text-field{
+    -fx-border-color: transparent;
+}
+
+.filter-table-view .table-row-cell:odd {
+    -fx-background-color: transparent;
+}
+
+.filter-table-view .table-row-cell:even {
+    -fx-background-color: transparent;
 }
 
 

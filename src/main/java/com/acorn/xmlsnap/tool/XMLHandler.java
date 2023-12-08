@@ -208,9 +208,7 @@ public class XMLHandler implements  IXMLHandler{
         }
 
         return xn;
-
     }
-
 
     public Integer filterXmlData(List<NodeFilter> nodeFilterList){
 

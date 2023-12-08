@@ -38,10 +38,10 @@
 
     <HBox spacing="10.0" GridPane.hgrow="NEVER" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
         <Button onAction="#addFilter" text="Add Filter"  minWidth="100.0"   />
-        <Button onAction="#applyFilter" text="Apply Filter" minWidth="100.0"/>
+        <Button fx:id="applyFilter" onAction="#applyFilter" text="Apply Filter" minWidth="100.0"/>
     </HBox>
 
-    <TableView fx:id="tableViewFilter"
+    <TableView fx:id="tableViewFilter" styleClass="filter-table-view"
                GridPane.vgrow="ALWAYS"  editable="true"  GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
         <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
