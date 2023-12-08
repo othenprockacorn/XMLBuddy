@@ -212,11 +212,11 @@ public class XMLHandler implements  IXMLHandler{
     }
 
 
-    public Integer filterXmlData(List<NodeFilter> nodeFilterList, String filterType){
+    public Integer filterXmlData(List<NodeFilter> nodeFilterList){
 
         nodeFilteredIndex=0;
         boolean  addIsToResults;
-
+        String filterType = "";
         removeFilterXmlData();
 
 
@@ -224,7 +224,7 @@ public class XMLHandler implements  IXMLHandler{
 
 
             for (NodeFilter nf : nodeFilterList){
-
+                filterType = nf.getTypeFilter().get().toLowerCase();
                 nf.setHitCount(0);
 
                 for(XmlNode xn : xnList.getValue()) {
@@ -280,10 +280,10 @@ public class XMLHandler implements  IXMLHandler{
 
         boolean addResult = false;
 
-        if(filterType.equalsIgnoreCase("and")) {
+        if(filterType.equalsIgnoreCase("and") || filterType.isEmpty()) {
             addResult = true;
             for (NodeFilter nf : nodeFilterList) {
-                if ((!nf.getEvalFilter().get().equals("Not equal to") && nf.getHitCount() == 0)
+                if ((nf.getEvalFilter().get().equals("Equals") && nf.getHitCount() == 0)
                         || (nf.getEvalFilter().get().equals("Not equal to") && nf.getHitCount() > 0)) {
                     addResult = false;
                     break;
@@ -294,7 +294,7 @@ public class XMLHandler implements  IXMLHandler{
 
             for (NodeFilter nf : nodeFilterList) {
                 if (
-                        (!nf.getEvalFilter().get().equals("Not equal to") && nf.getHitCount() > 0)
+                        (nf.getEvalFilter().get().equals("Equals") && nf.getHitCount() > 0)
                         ||
                         (nf.getEvalFilter().get().equals("Not equal to") && nf.getHitCount() == 0)
                 ) {

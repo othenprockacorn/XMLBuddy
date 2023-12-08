@@ -10,7 +10,7 @@ public interface IXMLHandler {
 
     public void readXMLFromFile(String fileLocation);
 
-    public Integer filterXmlData(List<NodeFilter> nodeFilterList, String filterType);
+    public Integer filterXmlData(List<NodeFilter> nodeFilterList);
 
     public Integer getXmlIndex();
 

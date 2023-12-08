@@ -1,5 +1,24 @@
-.noheader .column-header-background {
+.filter-table-view .column-header-background {
     -fx-max-height: 0;
     -fx-pref-height: 0;
     -fx-min-height: 0;
 }
+
+
+
+.filter-table-view .table-cell .table-row-cell:odd .table-row-cell:even{
+    -fx-alignment: CENTER-LEFT;
+    -fx-border-color: #3b91d2;
+    -fx-padding: 2 0 2 10px;
+    -fx-border-radius: 5;
+    -fx-cell-size:40px;
+}
+
+.filter-table-view .table-cell .button{
+   -fx-text-fill: #571010;
+    -fx-font-weight: bold;
+}
+
+
+
+

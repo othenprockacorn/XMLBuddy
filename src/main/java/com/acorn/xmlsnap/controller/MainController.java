@@ -6,8 +6,9 @@ import com.acorn.xmlsnap.model.XmlNode;
 
 import com.acorn.xmlsnap.tool.XMLImporter;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -60,7 +61,6 @@ public class MainController implements Initializable {
     @FXML private GridPane mainGridPane;
 
     @FXML private Button butXmlSelector;
-    @FXML private TextField tfFilter;
     @FXML private ComboBox<String> cbFilterType;
 
     @Override
@@ -68,37 +68,162 @@ public class MainController implements Initializable {
         xmlImporter = new XMLImporter();
 
         tableViewFilter.setEditable(true);
+        tableViewFilter.setFixedCellSize(30);
+
+        tableViewFilter.setPlaceholder(new Label("No filters"));
+        tableViewFilter.getStyleClass().add("filter-table-view");
+        tableViewFilter.setItems(observableFilterList);
 
         //Filter table
-        typeCol.setMaxWidth(80.0);
-        typeCol.setMinWidth(80.0);
+        typeCol.setMaxWidth(100.0);
+        typeCol.setMinWidth(100.0);
         typeCol.setCellValueFactory(cellData -> cellData.getValue().getTypeFilter());
-        typeCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        typeCol.setCellFactory(ComboBoxTableCell.forTableColumn("Start","And","AndOr","Or"));
+        typeCol.setCellFactory(tc -> {
+            ComboBox<String> combo = new ComboBox<>();
+            combo.getItems().addAll("And","And Or","Or");
+            TableCell<NodeFilter, String> cell = new TableCell<NodeFilter, String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                  if (empty || item.isEmpty()) {
+                        setGraphic(null);
+                    } else {
+                        combo.setValue(item);
+                        setGraphic(combo);
+                    }
+                }
+            };
+            combo.valueProperty().addListener((obs, oldValue, newValue) -> {
+                if (!cell.isEmpty() && newValue != null) {
+                    NodeFilter item = tableViewFilter.getItems().get(cell.getIndex()) ;
+                    item.setTypeFilter(newValue);
+                }
+            });
+            cell.itemProperty().addListener((obs, oldItem, newItem) -> combo.setValue(newItem));
+
+            return cell ;
+        });
+
+        typeCol.setOnEditCommit(e -> {
+            e.getRowValue().setTypeFilter(e.getNewValue());
+            tableViewFilter.requestFocus();
+        });
         tableViewFilter.getColumns().add(typeCol);
 
         nameCol.setCellValueFactory(cellData -> cellData.getValue().getNameFilter());
         nameCol.setMinWidth(200.0);
-        nameCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        nameCol.setCellFactory(ComboBoxTableCell.forTableColumn(nodeNameList));
+        nameCol.setCellFactory(tc -> {
+            ComboBox<String> combo = new ComboBox<>();
+            combo.setMaxWidth(Double.MAX_VALUE);
+            combo.getItems().addAll(nodeNameList);
+            TableCell<NodeFilter, String> cell = new TableCell<NodeFilter, String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                    if (empty) {
+                        setGraphic(null);
+                    } else {
+                        combo.setValue(item);
+                        combo.setTooltip(new Tooltip("Select a node"));
+                        combo.setPromptText("Select a node");
+                        setGraphic(combo);
+                    }
+                }
+            };
+            combo.valueProperty().addListener((obs, oldValue, newValue) -> {
+                if (!cell.isEmpty() && newValue != null) {
+                    NodeFilter item = tableViewFilter.getItems().get(cell.getIndex()) ;
+                    item.setNameFilter(newValue);
+                }
+            });
+            cell.itemProperty().addListener((obs, oldItem, newItem) -> combo.setValue(newItem));
+
+            return cell ;
+        });
+
+        nameCol.setOnEditCommit(e -> {
+            e.getRowValue().setNameFilter(e.getNewValue());
+            tableViewFilter.requestFocus();
+        });
         tableViewFilter.getColumns().add(nameCol);
 
         evalCol.setCellValueFactory(cellData -> cellData.getValue().getEvalFilter());
-        evalCol.setCellFactory(TextFieldTableCell.forTableColumn());
         evalCol.setMaxWidth(120.0);
         evalCol.setMinWidth(120.0);
-        evalCol.setCellFactory(ComboBoxTableCell.forTableColumn("Equals","Starts with","Ends with","Contains","Not equal to"));
+        evalCol.setCellFactory(tc -> {
+            ComboBox<String> combo = new ComboBox<>();
+            combo.setMaxWidth(Double.MAX_VALUE);
+            combo.getItems().addAll("Equals","Starts with","Ends with","Contains","Not equal to");
+            TableCell<NodeFilter, String> cell = new TableCell<NodeFilter, String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                    if (empty || item.isEmpty()) {
+                        setGraphic(null);
+                    } else {
+                        combo.setValue(item);
+                        setGraphic(combo);
+                    }
+                }
+            };
+            combo.valueProperty().addListener((obs, oldValue, newValue) -> {
+                if (!cell.isEmpty() && newValue != null) {
+                    NodeFilter item = tableViewFilter.getItems().get(cell.getIndex()) ;
+                    item.setEvalFilter(newValue);
+                }
+            });
+            cell.itemProperty().addListener((obs, oldItem, newItem) -> combo.setValue(newItem));
+
+            return cell ;
+        });
+
+        evalCol.setOnEditCommit(e -> {
+            e.getRowValue().setEvalFilter(e.getNewValue());
+            tableViewFilter.requestFocus();
+        });
+
         tableViewFilter.getColumns().add(evalCol);
 
         valueCol.setCellValueFactory(cellData -> cellData.getValue().getValueFilter());
         valueCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        valueCol.setCellFactory(new Callback<TableColumn<NodeFilter, String>, TableCell<NodeFilter, String>>() {
+
+            @Override
+            public TableCell<NodeFilter, String> call(TableColumn<NodeFilter, String> param) {
+                return new TableCell<NodeFilter, String>() {
+
+                    private final TextField textField = new TextField();
+
+                    @Override
+                    protected void updateItem(String value, boolean empty){
+                        super.updateItem(value, empty);
+                        if (empty){
+                            setGraphic(null);
+                        } else {
+                            setGraphic(textField);
+                            textField.setTooltip(new Tooltip("Enter a value"));
+                            textField.setPromptText("Enter a value");
+                            textField.setText(value);
+                        }
+                    }
+                };
+            }
+        });
+
         valueCol.setSortable(false);
         valueCol.setMinWidth(200.0);
+        valueCol.setOnEditCommit(e -> {
+            e.getRowValue().setValueFilter(e.getNewValue());
+            tableViewFilter.requestFocus();
+        });
+
         tableViewFilter.getColumns().add(valueCol);
 
-        deleteCol.setMaxWidth(80.0);
-        deleteCol.setMinWidth(80.0);
-
+        deleteCol.setMaxWidth(50.0);
+        deleteCol.setMinWidth(50.0);
 
         deleteCol.setCellValueFactory(
             new Callback<TableColumn.CellDataFeatures<NodeFilter, Boolean>,
@@ -126,12 +251,6 @@ public class MainController implements Initializable {
 
         tableViewFilter.getColumns().add(deleteCol);
 
-
-        tableViewFilter.setFixedCellSize(30);
-
-        tableViewFilter.setPlaceholder(new Label("No filters"));
-        tableViewFilter.getStyleClass().add("noheader");
-        tableViewFilter.setItems(observableFilterList);
 
         //Main Table
         tableView.autosize();
@@ -186,15 +305,7 @@ public class MainController implements Initializable {
         menu.getItems().add(item);
         tableView.setContextMenu(menu);
         resizeFilterView();
-        //Filter
-//        tfFilter.setOnKeyPressed( event -> {
-//            if( event.getCode() == KeyCode.ENTER ) {
-//                applyFilter();
-//            }
-//        } );
 
-        //Set focus on open file button
-      //  Platform.runLater(() ->  butXmlSelector.requestFocus() );
 
     }
 
@@ -276,27 +387,17 @@ public class MainController implements Initializable {
 
     }
 
-    private void applyFilter(){
+    public void applyFilter(ActionEvent event){
 
-        List<NodeFilter> nodeFilterList = getNodeFilterList(tfFilter.getText());
+        List<NodeFilter> nodeFilterList = new ArrayList<>(observableFilterList);
 
-        if(nodeFilterList != null) {
-            observableFilterList.clear();
-            observableFilterList.addAll(nodeFilterList);
-            resizeFilterView();
-        }
-
-
-        if (tfFilter.getText().isEmpty() ) {
-            xmlHandler.removeFilterXmlData();
-        }else if (nodeFilterList == null
-                || nodeFilterList.isEmpty()
-                || xmlHandler.filterXmlData(nodeFilterList, cbFilterType.getValue()) == 0) {
+        if (nodeFilterList.isEmpty()
+                || xmlHandler.filterXmlData(nodeFilterList) == 0) {
             xmlHandler.removeFilterXmlData();
             Alert alert = new Alert(Alert.AlertType.NONE);
             ButtonType type = new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE);
             alert.setTitle("No match found");
-            alert.setContentText("Did not find any results for " + tfFilter.getText());
+            alert.setContentText("Did not find any results");
             alert.getDialogPane().getButtonTypes().add(type);
             alert.showAndWait();
         }
@@ -336,12 +437,12 @@ public class MainController implements Initializable {
 
         if (nodeNameList.isEmpty() || observableFilterList.size() >=5)return;
 
-        String filterType = (!observableFilterList.isEmpty())? "And": "Start";
+        String filterType = (!observableFilterList.isEmpty())? "And": "";
 
         observableFilterList.add(
                 new NodeFilter(
                         filterType,
-                        nodeNameList.get(0),
+                        null,
                         "",
                         "Equals",
                         ""
@@ -351,32 +452,7 @@ public class MainController implements Initializable {
         resizeFilterView();
 
     }
-    private List<NodeFilter> getNodeFilterList(String filter) {
-        if(filter.isEmpty()){
-            return null;
-        }
 
-        List<NodeFilter> nodeFilterList = new ArrayList<>();
-        String filterOptions = filter.trim();
-        String[] filters= filterOptions.split(",");
-
-        for(String f :filters){
-            String[] filterNodeParts = f.split("=");
-            if (filterNodeParts.length < 2) return null;
-
-            String[] filterNameAndAttribute = filterNodeParts[0].replace("!","").split("@");
-
-            NodeFilter nf = new NodeFilter(
-                    cbFilterType.getValue(),
-                    filterNameAndAttribute[0],
-                    filterNameAndAttribute.length > 1 ? filterNameAndAttribute[1]: "",
-                    "Equals",
-                    filterNodeParts[1]);
-
-            nodeFilterList.add(nf);
-        }
-        return nodeFilterList;
-    }
 
     private void resizeFilterView(){
         tableViewFilter.refresh();
@@ -388,10 +464,9 @@ public class MainController implements Initializable {
 
     //Define the button cell
     private class ButtonCell extends TableCell<NodeFilter, Boolean> {
-        final Button cellButton = new Button("Delete");
+        final Button cellButton = new Button("❌");
 
         ButtonCell(){
-
             //Action when the button is pressed
             cellButton.setOnAction(new EventHandler<ActionEvent>(){
 
@@ -402,6 +477,7 @@ public class MainController implements Initializable {
                     //remove selected item from the table list
                     observableFilterList.remove(currentNode);
                     resizeFilterView();
+                    tableViewFilter.requestFocus();
                 }
             });
         }
@@ -411,6 +487,7 @@ public class MainController implements Initializable {
         protected void updateItem(Boolean t, boolean empty) {
             super.updateItem(t, empty);
             if(!empty){
+                cellButton.setTooltip(new Tooltip("Remove filter"));
                 setGraphic(cellButton);
             }
         }
