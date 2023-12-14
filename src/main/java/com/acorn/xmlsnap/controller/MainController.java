@@ -7,9 +7,7 @@ import com.acorn.xmlsnap.model.XmlNode;
 import com.acorn.xmlsnap.tool.XMLImporter;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
+
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,11 +17,9 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.util.Callback;
 
@@ -52,6 +48,8 @@ public class MainController implements Initializable {
 
     @FXML private TableView< NodeFilter> tableViewFilter = new TableView<>();
     @FXML private final TableColumn<NodeFilter, String> typeCol = new TableColumn<>("Filter Type");
+    @FXML private final TableColumn<NodeFilter, String> attributeCol = new TableColumn<>("Attribute");
+    @FXML private final TableColumn<NodeFilter, Boolean> searchAttributeCol = new TableColumn<>("@");
     @FXML private final TableColumn<NodeFilter, String> nameCol = new TableColumn<>("Node");
     @FXML private final TableColumn<NodeFilter, String> evalCol = new TableColumn<>("Evaluation");
     @FXML private final TableColumn<NodeFilter, String> valueCol = new TableColumn<>("Value");
@@ -115,6 +113,45 @@ public class MainController implements Initializable {
         });
         tableViewFilter.getColumns().add(typeCol);
 
+        searchAttributeCol.setCellValueFactory(cellData -> cellData.getValue().getSearchAttribute() );
+        searchAttributeCol.setMinWidth(50.0);
+        searchAttributeCol.setMaxWidth(50.0);
+        searchAttributeCol.setStyle("-fx-alignment: CENTER-RIGHT;");
+        searchAttributeCol.setCellFactory(tc -> {
+
+            CheckBox checkBox = new CheckBox();
+
+            TableCell<NodeFilter, Boolean> cell = new TableCell<NodeFilter, Boolean>() {
+                @Override
+                protected void updateItem(Boolean item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                    if (empty) {
+                        setGraphic(null);
+                    } else {
+                        checkBox.setSelected(item);
+                        checkBox.setTooltip(new Tooltip("Search for an Attribute"));
+                        setGraphic(checkBox);
+                    }
+                }
+            };
+            checkBox.selectedProperty().addListener((obs, oldValue, newValue) -> {
+                if (!cell.isEmpty() && newValue != null) {
+                    try {
+                        NodeFilter item = tableViewFilter.getItems().get(cell.getIndex());
+
+                        item.setSearchAttribute(new SimpleBooleanProperty(newValue));
+                    }
+                    catch (IndexOutOfBoundsException ignored){}
+                }
+            });
+            cell.itemProperty().addListener((obs, oldItem, newItem) -> checkBox.setSelected(newItem != null && newItem));
+
+            return cell ;
+        });
+
+        tableViewFilter.getColumns().add(searchAttributeCol);
+
         nameCol.setCellValueFactory(cellData -> cellData.getValue().getNameFilter());
         nameCol.setMinWidth(200.0);
         nameCol.setCellFactory(tc -> {
@@ -146,7 +183,6 @@ public class MainController implements Initializable {
 
             return cell ;
         });
-
 
         tableViewFilter.getColumns().add(nameCol);
 
@@ -209,14 +245,6 @@ public class MainController implements Initializable {
                     }
                 };
 
-//                textField.onKeyPressedProperty().set(e -> {
-//                    if (e.getCode() == KeyCode.ENTER) {
-//
-//                        NodeFilter item = tableViewFilter.getItems().get(cell.getIndex()) ;
-//                        item.setValueFilter(textField.getText());
-//
-//                    }
-//                });
 
                 textField.focusedProperty().addListener((arg0, oldPropertyValue, newPropertyValue) -> {
                     if (!newPropertyValue) {
@@ -387,9 +415,9 @@ public class MainController implements Initializable {
 
     private void setViewing(){
 
-        if ( xmlHandler.getXmlFilteredIndex() > 0 || xmlHandler.getXmlIndex() > 0) {
+        if ( xmlHandler != null && (xmlHandler.getXmlFilteredIndex() > 0 || xmlHandler.getXmlIndex() > 0 )) {
 
-            nodeNameList.setAll(xmlHandler.getNoUsIdeNameList());
+            nodeNameList.setAll(xmlHandler.getNameList());
 
             List<XmlNode> xmlRow = xmlHandler.getElement(currentIndex);
             String msgFiltered = xmlHandler.getXmlFilteredIndex() > 0 ?
@@ -406,15 +434,25 @@ public class MainController implements Initializable {
 
         List<NodeFilter> nodeFilterList = new ArrayList<>(observableFilterList);
 
-        if (nodeFilterList.isEmpty()
-                || xmlHandler.filterXmlData(nodeFilterList) == 0) {
-            xmlHandler.removeFilterXmlData();
-            Alert alert = new Alert(Alert.AlertType.NONE);
-            ButtonType type = new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE);
-            alert.setTitle("No match found");
-            alert.setContentText("Did not find any results");
-            alert.getDialogPane().getButtonTypes().add(type);
-            alert.showAndWait();
+
+        int recordsReturned = !nodeFilterList.isEmpty() ? xmlHandler.filterXmlData(nodeFilterList) : 0;
+
+        if (nodeFilterList.isEmpty() || recordsReturned == 0) {
+
+            if(xmlHandler != null){
+                xmlHandler.removeFilterXmlData();
+            }
+
+
+           if(!nodeFilterList.isEmpty()  &&  recordsReturned == 0) {
+               Alert alert = new Alert(Alert.AlertType.NONE);
+               ButtonType type = new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE);
+               alert.setTitle("No match found");
+               alert.setContentText("Did not find any results");
+               alert.getDialogPane().getButtonTypes().add(type);
+               alert.showAndWait();
+           }
+
         }
 
         currentIndex = 1;

@@ -1,5 +1,6 @@
 package com.acorn.xmlsnap.model;
 
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 public class NodeFilter {
@@ -9,6 +10,7 @@ public class NodeFilter {
     private SimpleStringProperty attributeName = new SimpleStringProperty("");
     private SimpleStringProperty evalFilter = new SimpleStringProperty("");
     private SimpleStringProperty valueFilter = new SimpleStringProperty("");
+    private SimpleBooleanProperty searchAttribute = new SimpleBooleanProperty();
     int hitCount;
 
     public int getHitCount() {
@@ -27,6 +29,7 @@ public class NodeFilter {
         this.evalFilter.set("");
         this.valueFilter.set("");
         hitCount = 0;
+        searchAttribute.set(false);
     }
 
     public NodeFilter(String typeFilter, String nameFilter, String attributeName, String evalFilter, String valueFilter) {
@@ -36,6 +39,7 @@ public class NodeFilter {
         this.evalFilter.set(evalFilter);
         this.valueFilter.set(valueFilter);
         hitCount = 0;
+        searchAttribute.set(false);
     }
 
     public void setTypeFilter(String typeFilter) {
@@ -64,4 +68,11 @@ public class NodeFilter {
     public SimpleStringProperty getEvalFilter() {return evalFilter;}
     public SimpleStringProperty getValueFilter() {return valueFilter; }
 
+    public SimpleBooleanProperty getSearchAttribute() {
+        return searchAttribute;
+    }
+
+    public void setSearchAttribute(SimpleBooleanProperty searchAttribute) {
+        this.searchAttribute = searchAttribute;
+    }
 }

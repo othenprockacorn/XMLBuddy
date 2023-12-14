@@ -19,6 +19,8 @@ public class XMLHandler implements  IXMLHandler{
     private final Map<Integer,List<XmlNode>> xmlFilteredData;
 
     private final HashSet<String> nodeNameList = new HashSet<>();
+
+    private final HashSet<NodeAttribute> nodeAttributeList = new HashSet<>();
     private String rowElement = "";
     private final String userElement;
     private boolean foundUserElement = false;
@@ -93,6 +95,7 @@ public class XMLHandler implements  IXMLHandler{
                         nodeList.add(new XmlNode(xmlStreamReader.getLocalName(), "", userElement,
                                 true, true, 1, new ArrayList<>()));
                         xmlData.put(++nodeIndex,nodeList);
+                        nodeAttributeList.addAll(attributeList);
                     }
 
                 }
@@ -164,6 +167,7 @@ public class XMLHandler implements  IXMLHandler{
                                     attributeList
                                     )
                             );
+                            nodeAttributeList.addAll(attributeList);
 
                         }
 
@@ -213,13 +217,11 @@ public class XMLHandler implements  IXMLHandler{
     public Integer filterXmlData(List<NodeFilter> nodeFilterList){
 
         nodeFilteredIndex=0;
-        boolean  addIsToResults;
-        String filterType = "";
+
+        String filterType;
         removeFilterXmlData();
 
-
         for (Map.Entry<Integer,List<XmlNode>> xnList : xmlData.entrySet()){
-
 
             for (NodeFilter nf : nodeFilterList){
                 filterType = nf.getTypeFilter().get().toLowerCase();
@@ -227,41 +229,20 @@ public class XMLHandler implements  IXMLHandler{
 
                 for(XmlNode xn : xnList.getValue()) {
 
-                    String nodeName = xn.getSearchNodeName().get();
-
-                    if (nf.getAttributeName().get() == null || nf.getAttributeName().get().isEmpty()){
-
-                        if (nf.getNameFilter().get().equalsIgnoreCase(nodeName)
-                                && (nf.getValueFilter().get().equalsIgnoreCase(xn.getNodeValue().get())
-                                || (nf.getValueFilter().get().equals("\"\"") && xn.getNodeValue().get().isEmpty())
-                        )) {
-                            xn.setFilter(true);
-                            nf.setHitCount(nf.getHitCount() + 1);
-                        }
+                    if ( nf.getNameFilter().get() != null
+                        && !nf.getNameFilter().get().isEmpty()
+                        && nf.getNameFilter().get().equalsIgnoreCase(xn.getNodeName().get())
+                        && (
+                            (  ( nf.getValueFilter().get() == null || nf.getValueFilter().get().equals("\"\"") )  && xn.getNodeValue().get().isEmpty() )
+                                ||  nf.getValueFilter().get().equalsIgnoreCase(xn.getNodeValue().get())  )
+                            ) {
+                        xn.setFilter(true);
+                        nf.setHitCount(nf.getHitCount() + 1);
                     }
-                    else {
-
-                        for(NodeAttribute nodeAttribute : xn.getAttributesList()){
-
-                            if ( nf.getNameFilter().get().equalsIgnoreCase(nodeName)
-                                    && nf.getAttributeName().get().equalsIgnoreCase(nodeAttribute.attName())
-                                    &&
-                                    (nf.getValueFilter().get().equalsIgnoreCase(nodeAttribute.attValue())
-                                    || nf.getValueFilter().get().equals("\"\"") && nodeAttribute.attValue().isEmpty())
-                                    ) {
-                                xn.setFilter(true);
-                                nf.setHitCount(nf.getHitCount() + 1);
-                            }
-
-                        }
-
-                    }
-
                 }
-
             }
 
-            if(addToResults(nodeFilterList, filterType)){
+            if(addToResults(nodeFilterList)){
                 xmlFilteredData.put(++nodeFilteredIndex, xnList.getValue());
             }
 
@@ -270,38 +251,66 @@ public class XMLHandler implements  IXMLHandler{
         return nodeFilteredIndex;
     }
 
-    public HashSet<String> getNoUsIdeNameList(){
-        return nodeNameList;
-    }
+    private  boolean addToResults(List<NodeFilter> nodeFilterList) {
 
-    private  boolean addToResults(List<NodeFilter> nodeFilterList, String filterType) {
+        String type ="";
+        boolean orHit = false;
 
-        boolean addResult = false;
+        for (int i=0; i < nodeFilterList.size(); i++) {
+            type = nodeFilterList.get(i).getTypeFilter().get();
 
-        if(filterType.equalsIgnoreCase("and") || filterType.isEmpty()) {
-            addResult = true;
-            for (NodeFilter nf : nodeFilterList) {
-                if ((nf.getEvalFilter().get().equals("Equals") && nf.getHitCount() == 0)
-                        || (nf.getEvalFilter().get().equals("Not equal to") && nf.getHitCount() > 0)) {
-                    addResult = false;
-                    break;
-                }
+            if (nodeFilterList.get(i).getTypeFilter().get().equalsIgnoreCase("and")
+                    || nodeFilterList.get(i).getTypeFilter().get().equalsIgnoreCase("and or")){
+                orHit = false;
             }
-        }
-        else if(filterType.equalsIgnoreCase("or")) {
 
-            for (NodeFilter nf : nodeFilterList) {
-                if (
-                        (nf.getEvalFilter().get().equals("Equals") && nf.getHitCount() > 0)
-                        ||
-                        (nf.getEvalFilter().get().equals("Not equal to") && nf.getHitCount() == 0)
-                ) {
-                    addResult = true;
-                    break;
-                }
+            //else if this is the only one
+           if(nodeFilterList.size()==1 && nodeFilterList.get(i).getHitCount()==0){
+                return false;
             }
+            //this one is (AND or AND OR) and the last one is OR and (this one is 0 or orHit is false) then return false
+           else if( i>0
+                && (type.equalsIgnoreCase("and") || type.equalsIgnoreCase("and or") )
+                &&  nodeFilterList.get(i-1).getTypeFilter().get().equalsIgnoreCase("or")
+                &&  (nodeFilterList.get(i).getHitCount()==0 || !orHit ) ) {
+                return false;
+           }
+           //this one is OR or AND OR and this one is 1+, then orHit is true
+           else if( (type.equalsIgnoreCase("or") || type.equalsIgnoreCase("and or") )
+                && nodeFilterList.get(i).getHitCount()>0){
+               orHit = true;
+           }
+          //this one is AND and this one is 0, then return false
+           else if(type.equalsIgnoreCase("and") && nodeFilterList.get(i).getHitCount()==0){
+               return false;
+           }
+           //this one is Blank and the next one is AND and this one is 0, then return false
+           else if(nodeFilterList.size() > 1
+                && i == 0
+                && (nodeFilterList.get(i+1).getTypeFilter().get().equalsIgnoreCase("and")
+                    || nodeFilterList.get(i+1).getTypeFilter().get().equalsIgnoreCase("and or"))
+                && nodeFilterList.get(i).getHitCount()==0) {
+               return false;
+           }
+           //else If (this one is Blank and the next one is OR and this one is 0, then orHit is true
+           else if(nodeFilterList.size() > 1
+                   && i == 0
+                   && (nodeFilterList.get(i+1).getTypeFilter().get().equalsIgnoreCase("or")
+                   || nodeFilterList.get(i+1).getTypeFilter().get().equalsIgnoreCase("and or"))
+                   && (nodeFilterList.get(i).getHitCount()>0 || nodeFilterList.get(i+1).getHitCount()>0)) {
+               orHit = true;
+           }
+
+            //this one is OR and EOF and orHit is false, then return false
+           if (i == nodeFilterList.size()-1
+                && (type.equalsIgnoreCase("or") || type.equalsIgnoreCase("and or"))
+                && !orHit){
+               return false;
+           }
+
         }
-        return addResult;
+
+        return true;
     }
 
     public void removeFilterXmlData(){
@@ -314,6 +323,14 @@ public class XMLHandler implements  IXMLHandler{
 
         xmlFilteredData.clear();
         nodeFilteredIndex = 0;
+    }
+
+    public HashSet<String> getNameList(){
+        return nodeNameList;
+    }
+
+    public HashSet<NodeAttribute> getAttributeList(){
+        return nodeAttributeList;
     }
 
     public Integer getXmlIndex(){
