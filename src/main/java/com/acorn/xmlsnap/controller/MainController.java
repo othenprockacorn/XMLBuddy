@@ -419,6 +419,8 @@ public class MainController implements Initializable {
 
             nodeNameList.setAll(xmlHandler.getNameList());
 
+            FXCollections.sort(nodeNameList);
+
             List<XmlNode> xmlRow = xmlHandler.getElement(currentIndex);
             String msgFiltered = xmlHandler.getXmlFilteredIndex() > 0 ?
                     " (filtered " + xmlHandler.getXmlFilteredIndex() + ") of " + xmlHandler.getXmlIndex()

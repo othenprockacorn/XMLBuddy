@@ -122,7 +122,7 @@ public class XMLHandler implements  IXMLHandler{
         List<String> nodeCountList = new ArrayList<>();
         nodeParentList.add(rowElement);
 
-
+        String nodeParent = "";
         String currentNode = "";
         String currentText = "";
         boolean hadEnded = true;
@@ -140,17 +140,21 @@ public class XMLHandler implements  IXMLHandler{
                     }
                     else{
 
+                        nodeParent = !nodeParentList.isEmpty()? nodeParentList.get(nodeParentList.size() - 1) : "";
+
                         if (nodeIgnore.contains(currentNode)){
 
-                            nodeParentList.remove(nodeParentList.size() - 1);
+                            if(!nodeParentList.isEmpty()) nodeParentList.remove(nodeParentList.size() - 1);
+
+                            nodeParent = !nodeParentList.isEmpty()? nodeParentList.get(nodeParentList.size() - 1) : "";
 
                             xn.add(new XmlNode(
                                     currentNode,
                                     currentText,
-                                    nodeParentList.get(nodeParentList.size() - 1),
+                                    nodeParent,
                                    true,
                                     true,
-                                    Collections.frequency(nodeCountList, nodeParentList.get(nodeParentList.size() - 1)+currentNode),
+                                    Collections.frequency(nodeCountList, nodeParent+currentNode),
                                     new ArrayList<>()
                                     )
                             );
@@ -160,10 +164,10 @@ public class XMLHandler implements  IXMLHandler{
                             xn.add(new XmlNode(
                                     currentNode,
                                     currentText,
-                                    nodeParentList.get(nodeParentList.size() - 1),
+                                    nodeParent,
                                     false,
                                     false,
-                                    Collections.frequency(nodeCountList, nodeParentList.get(nodeParentList.size() - 1)+currentNode),
+                                    Collections.frequency(nodeCountList, nodeParent+currentNode),
                                     attributeList
                                     )
                             );
@@ -181,10 +185,10 @@ public class XMLHandler implements  IXMLHandler{
                         xn.add(new XmlNode(
                                 currentNode,
                                 "",
-                                nodeParentList.get(nodeParentList.size() - 1),
+                                nodeParent,
                                 true,
                                 false,
-                                Collections.frequency(nodeCountList, nodeParentList.get(nodeParentList.size() - 1)+currentNode),
+                                Collections.frequency(nodeCountList, nodeParent+currentNode),
                                 attributeList));
 
                         nodeParentList.add(currentNode);
@@ -193,7 +197,7 @@ public class XMLHandler implements  IXMLHandler{
                     currentText ="";
                     currentNode = xmlStreamReader.getLocalName();
 
-                    nodeCountList.add(nodeParentList.get(nodeParentList.size() - 1)+currentNode);
+                    nodeCountList.add(nodeParent+currentNode);
 
                     attributeList = new ArrayList<>();
                     int attributes = xmlStreamReader.getAttributeCount();
@@ -300,7 +304,6 @@ public class XMLHandler implements  IXMLHandler{
                    && (nodeFilterList.get(i).getHitCount()>0 || nodeFilterList.get(i+1).getHitCount()>0)) {
                orHit = true;
            }
-
             //this one is OR and EOF and orHit is false, then return false
            if (i == nodeFilterList.size()-1
                 && (type.equalsIgnoreCase("or") || type.equalsIgnoreCase("and or"))
